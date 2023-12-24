@@ -1,3 +1,4 @@
-x64
-lib
 .vs
+Debug
+lib
+x64
