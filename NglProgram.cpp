@@ -58,6 +58,20 @@ NglProgram NglProgram::Builder::build() {
     glLinkProgram(program);
     NGL_CHECK_ERRORS;
 
+    GLint linkStatus;
+    glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+    NGL_CHECK_ERRORS;
+    if (linkStatus == GL_FALSE) {
+        GLint logLength;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+        NGL_CHECK_ERRORS;
+        std::vector<GLchar> log(logLength);
+        glGetProgramInfoLog(program, logLength, nullptr, log.data());
+        NGL_LOGE("Program linking failed:\n==v==\n%s==^==", log.data());
+        glDeleteProgram(program);
+        abort();
+    }
+
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
