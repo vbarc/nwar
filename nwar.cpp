@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "nglerr.h"
+
 static const char* vertexShaderSrc = R"(
 #version 460 core
 
@@ -56,39 +58,61 @@ int main(void) {
     glfwSwapInterval(1);
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    NGLCHKERR;
     glShaderSource(vertexShader, 1, &vertexShaderSrc, nullptr);
+    NGLCHKERR;
     glCompileShader(vertexShader);
+    NGLCHKERR;
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    NGLCHKERR;
     glShaderSource(fragmentShader, 1, &fragmentShaderSrc, nullptr);
+    NGLCHKERR;
     glCompileShader(fragmentShader);
+    NGLCHKERR;
 
     GLuint program = glCreateProgram();
+    NGLCHKERR;
     glAttachShader(program, vertexShader);
+    NGLCHKERR;
     glAttachShader(program, fragmentShader);
+    NGLCHKERR;
     glLinkProgram(program);
+    NGLCHKERR;
     glUseProgram(program);
+    NGLCHKERR;
 
     GLuint vao;
     glCreateVertexArrays(1, &vao);
+    NGLCHKERR;
     glBindVertexArray(vao);
+    NGLCHKERR;
 
     GLuint vertexBuffer;
     glGenBuffers(1, &vertexBuffer);
+    NGLCHKERR;
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    NGLCHKERR;
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    NGLCHKERR;
     glEnableVertexAttribArray(0 /*pos*/);
+    NGLCHKERR;
     glVertexAttribPointer(0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0, static_cast<void*>(0));
+    NGLCHKERR;
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
+    NGLCHKERR;
 
     while (!glfwWindowShouldClose(window)) {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
+        NGLCHKERR;
         glClear(GL_COLOR_BUFFER_BIT);
+        NGLCHKERR;
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        NGLCHKERR;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -98,6 +122,7 @@ int main(void) {
     glfwTerminate();
 
     // TODO: Add robust error checking
+    // TODO: Logging macros
     // TODO: Helpers for shaders and program
     // TODO: Destroy everything
     // TODO: MVP
