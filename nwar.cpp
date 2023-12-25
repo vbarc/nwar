@@ -107,7 +107,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Shader compilation errors
     // TODO: Destroy everything
     // TODO: MVP
     // TODO: Multiple triangles
