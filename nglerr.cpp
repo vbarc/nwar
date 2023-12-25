@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #include "nglgl.h"
+#include "ngllog.h"
 
 void nglCheckErrors(const char* file, int line) {
     bool errorDetected = false;
@@ -40,7 +41,7 @@ void nglCheckErrors(const char* file, int line) {
                 break;
         }
         errorDetected = true;
-        fprintf(stderr, "OpenGL error: %s(%d) at %s:%d", errorStr, error, file, line);
+        NGL_LOGE("OpenGL error: %s(%d) at %s:%d", errorStr, error, file, line);
     }
     if (errorDetected) {
         exit(EXIT_FAILURE);

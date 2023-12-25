@@ -4,6 +4,7 @@
 #include "ngldbg.h"
 #include "nglerr.h"
 #include "nglgl.h"
+#include "ngllog.h"
 
 static const char* vertexShaderSrc = R"(
 #version 460 core
@@ -30,9 +31,10 @@ static const float vertices[] = {
 };
 
 int main(void) {
-    glfwSetErrorCallback([](int error, const char* description) { fprintf(stderr, "Error: %s\n", description); });
+    glfwSetErrorCallback([](int error, const char* description) { NGL_LOGE("GLFW error: %s", description); });
 
     if (!glfwInit()) {
+        NGL_LOGE("glfwInit() failed");
         exit(EXIT_FAILURE);
     }
 
@@ -43,6 +45,7 @@ int main(void) {
 
     GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War", nullptr, nullptr);
     if (!window) {
+        NGL_LOGE("glfwCreateWindow() failed");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -123,7 +126,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Logging macros
     // TODO: Helpers for shaders and program
     // TODO: Destroy everything
     // TODO: MVP

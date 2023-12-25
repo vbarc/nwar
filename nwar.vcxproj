@@ -156,6 +156,7 @@
     <ClInclude Include="ngldbg.h" />
     <ClInclude Include="nglerr.h" />
     <ClInclude Include="nglgl.h" />
+    <ClInclude Include="ngllog.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

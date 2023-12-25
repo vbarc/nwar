@@ -42,5 +42,8 @@
     <ClInclude Include="nglgl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ngllog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

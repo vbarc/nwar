@@ -4,6 +4,7 @@
 
 #include "nglerr.h"
 #include "nglgl.h"
+#include "ngllog.h"
 
 #define __NGL_DEBUG_ENABLED
 
@@ -114,5 +115,5 @@ static void APIENTRY debugMessageCallback(GLenum source, GLenum type, GLuint id,
             severityStr = "UNKNOWN";
             break;
     }
-    fprintf(stderr, "%s|%s|%s|%d: %s", severityStr, typeStr, sourceStr, id, message);
+    NGL_LOGE("OpenGL debug error: %s|%s|%s|%d: %s", severityStr, typeStr, sourceStr, id, message);
 }
