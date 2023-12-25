@@ -41,9 +41,9 @@ void nglCheckErrors(const char* file, int line) {
                 break;
         }
         errorDetected = true;
-        NGL_LOGE("OpenGL error: %s(%d) at %s:%d", errorStr, error, file, line);
+        NGL_LOGE("OpenGL error at %s:%d: %s(%d)", file, line, errorStr, error);
     }
     if (errorDetected) {
-        exit(EXIT_FAILURE);
+        abort();
     }
 }

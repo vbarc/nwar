@@ -36,7 +36,7 @@ int main(void) {
 
     if (!glfwInit()) {
         NGL_LOGE("glfwInit() failed");
-        exit(EXIT_FAILURE);
+        abort();
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -48,7 +48,7 @@ int main(void) {
     if (!window) {
         NGL_LOGE("glfwCreateWindow() failed");
         glfwTerminate();
-        exit(EXIT_FAILURE);
+        abort();
     }
 
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -106,7 +106,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Migrate everything to abort
     // TODO: Shader compilation errors
     // TODO: Destroy everything
     // TODO: MVP
