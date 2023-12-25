@@ -104,10 +104,12 @@ int main(void) {
         glfwPollEvents();
     }
 
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteVertexArrays(1, &vao);
+
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Destroy everything
     // TODO: MVP
     // TODO: Multiple triangles
     // TODO: Wireframe
