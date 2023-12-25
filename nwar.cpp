@@ -1,10 +1,9 @@
-#include <glad/glad.h>
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ngldbg.h"
 #include "nglerr.h"
+#include "nglgl.h"
 
 static const char* vertexShaderSrc = R"(
 #version 460 core
@@ -40,6 +39,7 @@ int main(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    nglPrepareDebugIfNecessary();
 
     GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War", nullptr, nullptr);
     if (!window) {
@@ -57,62 +57,64 @@ int main(void) {
     gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
     glfwSwapInterval(1);
 
+    nglEnableDebugIfNecessary();
+
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glShaderSource(vertexShader, 1, &vertexShaderSrc, nullptr);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glCompileShader(vertexShader);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glShaderSource(fragmentShader, 1, &fragmentShaderSrc, nullptr);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glCompileShader(fragmentShader);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
 
     GLuint program = glCreateProgram();
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glAttachShader(program, vertexShader);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glAttachShader(program, fragmentShader);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glLinkProgram(program);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glUseProgram(program);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
 
     GLuint vao;
     glCreateVertexArrays(1, &vao);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glBindVertexArray(vao);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
 
     GLuint vertexBuffer;
     glGenBuffers(1, &vertexBuffer);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glEnableVertexAttribArray(0 /*pos*/);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
     glVertexAttribPointer(0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0, static_cast<void*>(0));
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
-    NGLCHKERR;
+    NGL_CHECK_ERRORS;
 
     while (!glfwWindowShouldClose(window)) {
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
-        NGLCHKERR;
+        NGL_CHECK_ERRORS;
         glClear(GL_COLOR_BUFFER_BIT);
-        NGLCHKERR;
+        NGL_CHECK_ERRORS;
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        NGLCHKERR;
+        NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -121,7 +123,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Add robust error checking
     // TODO: Logging macros
     // TODO: Helpers for shaders and program
     // TODO: Destroy everything

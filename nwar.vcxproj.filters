@@ -24,6 +24,9 @@
     <ClCompile Include="nglerr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ngldbg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -31,6 +34,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nglerr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ngldbg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nglgl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

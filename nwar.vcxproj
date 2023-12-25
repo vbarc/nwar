@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad\src\glad.c" />
+    <ClCompile Include="ngldbg.cpp" />
     <ClCompile Include="nglerr.cpp" />
     <ClCompile Include="nwar.cpp" />
   </ItemGroup>
@@ -152,7 +153,9 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ngldbg.h" />
     <ClInclude Include="nglerr.h" />
+    <ClInclude Include="nglgl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

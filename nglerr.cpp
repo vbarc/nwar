@@ -3,9 +3,9 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <glad/glad.h>
+#include "nglgl.h"
 
-void nglCheckError(const char* file, int line) {
+void nglCheckErrors(const char* file, int line) {
     bool errorDetected = false;
     while (true) {
         GLenum error = glGetError();
