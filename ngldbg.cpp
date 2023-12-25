@@ -115,5 +115,5 @@ static void APIENTRY debugMessageCallback(GLenum source, GLenum type, GLuint id,
             severityStr = "UNKNOWN";
             break;
     }
-    NGL_LOGE("OpenGL debug error: %s|%s|%s|%d: %s", severityStr, typeStr, sourceStr, id, message);
+    NGL_LOGE("OpenGL debug error: %s|%s|%s|%d:\n==v==\n%s==^==", severityStr, typeStr, sourceStr, id, message);
 }

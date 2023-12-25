@@ -22,6 +22,8 @@ public:
         NglProgram build();
 
     private:
+        static GLuint generateShader(GLenum shaderType, const char* shaderCode, const char* label);
+
         std::string mVertexShaderCode;
         std::string mFragmentShaderCode;
     };
