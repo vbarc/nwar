@@ -32,7 +32,8 @@ static const float vertices[] = {
 };
 
 int main(void) {
-    glfwSetErrorCallback([](int error, const char* description) { NGL_LOGE("GLFW error: %s", description); });
+    glfwSetErrorCallback(
+            [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
 
     if (!glfwInit()) {
         NGL_LOGE("glfwInit() failed");
