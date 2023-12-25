@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "NglProgram.h"
 #include "ngldbg.h"
 #include "nglerr.h"
 #include "nglgl.h"
@@ -62,30 +63,9 @@ int main(void) {
 
     nglEnableDebugIfNecessary();
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    NGL_CHECK_ERRORS;
-    glShaderSource(vertexShader, 1, &vertexShaderSrc, nullptr);
-    NGL_CHECK_ERRORS;
-    glCompileShader(vertexShader);
-    NGL_CHECK_ERRORS;
-
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    NGL_CHECK_ERRORS;
-    glShaderSource(fragmentShader, 1, &fragmentShaderSrc, nullptr);
-    NGL_CHECK_ERRORS;
-    glCompileShader(fragmentShader);
-    NGL_CHECK_ERRORS;
-
-    GLuint program = glCreateProgram();
-    NGL_CHECK_ERRORS;
-    glAttachShader(program, vertexShader);
-    NGL_CHECK_ERRORS;
-    glAttachShader(program, fragmentShader);
-    NGL_CHECK_ERRORS;
-    glLinkProgram(program);
-    NGL_CHECK_ERRORS;
-    glUseProgram(program);
-    NGL_CHECK_ERRORS;
+    NglProgram program =
+            NglProgram::Builder().setVertexShader(vertexShaderSrc).setFragmentShader(fragmentShaderSrc).build();
+    program.use();
 
     GLuint vao;
     glCreateVertexArrays(1, &vao);
@@ -126,7 +106,8 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Helpers for shaders and program
+    // TODO: Migrate everything to abort
+    // TODO: Shader compilation errors
     // TODO: Destroy everything
     // TODO: MVP
     // TODO: Multiple triangles
