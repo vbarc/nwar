@@ -30,6 +30,11 @@ void NglProgram::use() {
     glUseProgram(mName);
 }
 
+NglProgram::operator GLuint() const {
+    NGL_ASSERT(mName);
+    return mName;
+}
+
 NglProgram::Builder& NglProgram::Builder::setVertexShader(const char* shaderCode) {
     NGL_ASSERT(shaderCode);
     mVertexShaderCode = shaderCode;

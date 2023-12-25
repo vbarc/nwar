@@ -14,6 +14,8 @@ public:
 
     void use();
 
+    operator GLuint() const;
+
     class Builder {
     public:
         Builder& setVertexShader(const char* shaderCode);

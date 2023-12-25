@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 #include "NglProgram.h"
 #include "ngldbg.h"
 #include "nglerr.h"
@@ -11,9 +14,10 @@ static const char* vertexShaderSrc = R"(
 #version 460 core
 
 layout (location=0) in vec3 pos;
+uniform mat4 mvp;
 
 void main() {
-    gl_Position = vec4(pos, 1);
+    gl_Position = mvp * vec4(pos, 1);
 }
 )";
 
@@ -86,6 +90,8 @@ int main(void) {
     glVertexAttribPointer(0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0, static_cast<void*>(0));
     NGL_CHECK_ERRORS;
 
+    GLint mvpLocation = glGetUniformLocation(program, "mvp");
+
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
 
@@ -96,6 +102,12 @@ int main(void) {
         NGL_CHECK_ERRORS;
         glClear(GL_COLOR_BUFFER_BIT);
         NGL_CHECK_ERRORS;
+
+        glm::mat4 m = glm::mat4(1.0f);
+        glm::mat4 v = glm::lookAt(glm::vec3(1, 1, 2), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        glm::mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
+        glm::mat4 mvp = p * v * m;
+        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
         NGL_CHECK_ERRORS;
@@ -110,7 +122,7 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: MVP
+    // TODO: Camera
     // TODO: Multiple triangles
     // TODO: Wireframe
     // TODO: Landscape
