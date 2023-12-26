@@ -4,7 +4,7 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-#include "Camera.h"
+#include "NglCamera.h"
 #include "NglProgram.h"
 #include "ngldbg.h"
 #include "nglerr.h"
@@ -36,9 +36,7 @@ static const float vertices[] = {
         -0.5f, -0.4f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, -0.4f, 0.0f,
 };
 
-CameraPositioner_FirstPerson gPositioner(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                                         glm::vec3(0.0f, 1.0f, 0.0f));
-Camera gCamera(gPositioner);
+NglCamera gCamera(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 struct MouseState {
     glm::vec2 pos = glm::vec2(0.0f);
@@ -72,28 +70,28 @@ int main(void) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
         if (key == GLFW_KEY_W) {
-            gPositioner.movement_.forward_ = pressed;
+            gCamera.movement_.forward_ = pressed;
         }
         if (key == GLFW_KEY_S) {
-            gPositioner.movement_.backward_ = pressed;
+            gCamera.movement_.backward_ = pressed;
         }
         if (key == GLFW_KEY_A) {
-            gPositioner.movement_.left_ = pressed;
+            gCamera.movement_.left_ = pressed;
         }
         if (key == GLFW_KEY_D) {
-            gPositioner.movement_.right_ = pressed;
+            gCamera.movement_.right_ = pressed;
         }
         if (key == GLFW_KEY_1) {
-            gPositioner.movement_.up_ = pressed;
+            gCamera.movement_.up_ = pressed;
         }
         if (key == GLFW_KEY_2) {
-            gPositioner.movement_.down_ = pressed;
+            gCamera.movement_.down_ = pressed;
         }
         if (mods & GLFW_MOD_SHIFT) {
-            gPositioner.movement_.fastSpeed_ = pressed;
+            gCamera.movement_.fastSpeed_ = pressed;
         }
         if (key == GLFW_KEY_SPACE) {
-            gPositioner.lookAt(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            gCamera.reset(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         }
     });
 
@@ -149,7 +147,7 @@ int main(void) {
         const double newTime = glfwGetTime();
         float timeDelta = static_cast<float>(newTime - time);
         time = newTime;
-        gPositioner.update(timeDelta, gMouseState.pos, gMouseState.pressedLeft);
+        gCamera.update(timeDelta, gMouseState.pos, gMouseState.pressedLeft);
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);

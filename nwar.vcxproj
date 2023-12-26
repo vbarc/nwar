@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="nglassert.h" />
+    <ClInclude Include="NglCamera.h" />
     <ClInclude Include="ngldbg.h" />
     <ClInclude Include="nglerr.h" />
     <ClInclude Include="nglgl.h" />
