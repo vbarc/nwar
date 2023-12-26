@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/glm.hpp>
 
+#include "Camera.h"
 #include "NglProgram.h"
 #include "ngldbg.h"
 #include "nglerr.h"
@@ -35,6 +36,15 @@ static const float vertices[] = {
         -0.5f, -0.4f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, -0.4f, 0.0f,
 };
 
+CameraPositioner_FirstPerson gPositioner(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+                                         glm::vec3(0.0f, 1.0f, 0.0f));
+Camera gCamera(gPositioner);
+
+struct MouseState {
+    glm::vec2 pos = glm::vec2(0.0f);
+    bool pressedLeft = false;
+} gMouseState;
+
 int main(void) {
     glfwSetErrorCallback(
             [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
@@ -57,9 +67,47 @@ int main(void) {
     }
 
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        const bool pressed = action != GLFW_RELEASE;
+        if (key == GLFW_KEY_ESCAPE && pressed) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
+        if (key == GLFW_KEY_W) {
+            gPositioner.movement_.forward_ = pressed;
+        }
+        if (key == GLFW_KEY_S) {
+            gPositioner.movement_.backward_ = pressed;
+        }
+        if (key == GLFW_KEY_A) {
+            gPositioner.movement_.left_ = pressed;
+        }
+        if (key == GLFW_KEY_D) {
+            gPositioner.movement_.right_ = pressed;
+        }
+        if (key == GLFW_KEY_1) {
+            gPositioner.movement_.up_ = pressed;
+        }
+        if (key == GLFW_KEY_2) {
+            gPositioner.movement_.down_ = pressed;
+        }
+        if (mods & GLFW_MOD_SHIFT) {
+            gPositioner.movement_.fastSpeed_ = pressed;
+        }
+        if (key == GLFW_KEY_SPACE) {
+            gPositioner.lookAt(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        }
+    });
+
+    glfwSetMouseButtonCallback(window, [](auto* window, int button, int action, int mods) {
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            gMouseState.pressedLeft = action == GLFW_PRESS;
+        }
+    });
+
+    glfwSetCursorPosCallback(window, [](auto* window, double x, double y) {
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        gMouseState.pos.x = static_cast<float>(x / width);
+        gMouseState.pos.y = static_cast<float>(y / height);
     });
 
     glfwMakeContextCurrent(window);
@@ -95,7 +143,14 @@ int main(void) {
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
 
+    double time = glfwGetTime();
+
     while (!glfwWindowShouldClose(window)) {
+        const double newTime = glfwGetTime();
+        float timeDelta = static_cast<float>(newTime - time);
+        time = newTime;
+        gPositioner.update(timeDelta, gMouseState.pos, gMouseState.pressedLeft);
+
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -103,10 +158,9 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT);
         NGL_CHECK_ERRORS;
 
-        glm::mat4 m = glm::mat4(1.0f);
-        glm::mat4 v = glm::lookAt(glm::vec3(1, 1, 2), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        glm::mat4 v = gCamera.getViewMatrix();
         glm::mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
-        glm::mat4 mvp = p * v * m;
+        glm::mat4 mvp = p * v;
         glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -122,9 +176,9 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Camera
     // TODO: Multiple triangles
     // TODO: Wireframe
     // TODO: Landscape
+    // TODO: Simplify camera
     return 0;
 }
