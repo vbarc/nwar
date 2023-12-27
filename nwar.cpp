@@ -145,6 +145,8 @@ int main(void) {
     // TODO: Shaders to separate files
     // TODO: Multiple triangles
     // TODO: Wireframe
+    // TODO: Modernize uniforms
     // TODO: Landscape
+    // TODO: Skybox
     return 0;
 }
