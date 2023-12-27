@@ -13,7 +13,7 @@ NglCamera::NglCamera(const glm::vec3& position, const glm::vec3& target, const g
     reset();
 }
 
-bool NglCamera::onKeyEvent(int key, int scancode, int action, int mods) {
+bool NglCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
     bool handled = false;
     bool pressed = action != GLFW_RELEASE;
     if (key == GLFW_KEY_W) {
@@ -48,7 +48,7 @@ bool NglCamera::onKeyEvent(int key, int scancode, int action, int mods) {
     return handled;
 }
 
-bool NglCamera::onMouseButtonEvent(GLFWwindow* window, int button, int action, int mods) {
+bool NglCamera::onMouseButtonEvent(GLFWwindow* window, int button, int action, int /*mods*/) {
     bool handled = false;
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         mRotationActive = action == GLFW_PRESS;

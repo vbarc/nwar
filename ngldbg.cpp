@@ -36,7 +36,7 @@ void nglEnableDebugIfNecessary() {
     NGL_CHECK_ERRORS;
 }
 
-static void APIENTRY debugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+static void APIENTRY debugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei /*length*/,
                                           const GLchar* message, const void* /*userParam*/) {
     const char* sourceStr;
     switch (source) {
