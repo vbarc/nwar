@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad\src\glad.c" />
+    <ClCompile Include="NglCamera.cpp" />
     <ClCompile Include="ngldbg.cpp" />
     <ClCompile Include="nglerr.cpp" />
     <ClCompile Include="NglProgram.cpp" />
@@ -154,7 +155,6 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="nglassert.h" />
     <ClInclude Include="NglCamera.h" />
     <ClInclude Include="ngldbg.h" />

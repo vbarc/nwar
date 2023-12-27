@@ -38,11 +38,6 @@ static const float vertices[] = {
 
 NglCamera gCamera(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-struct MouseState {
-    glm::vec2 pos = glm::vec2(0.0f);
-    bool pressedLeft = false;
-} gMouseState;
-
 int main(void) {
     glfwSetErrorCallback(
             [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
@@ -64,48 +59,26 @@ int main(void) {
         abort();
     }
 
-    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        const bool pressed = action != GLFW_RELEASE;
-        if (key == GLFW_KEY_ESCAPE && pressed) {
+    glfwSetKeyCallback(window, [](auto window, int key, int scancode, int action, int mods) {
+        if (key == GLFW_KEY_ESCAPE && action != GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+            return;
         }
-        if (key == GLFW_KEY_W) {
-            gCamera.movement_.forward_ = pressed;
-        }
-        if (key == GLFW_KEY_S) {
-            gCamera.movement_.backward_ = pressed;
-        }
-        if (key == GLFW_KEY_A) {
-            gCamera.movement_.left_ = pressed;
-        }
-        if (key == GLFW_KEY_D) {
-            gCamera.movement_.right_ = pressed;
-        }
-        if (key == GLFW_KEY_1) {
-            gCamera.movement_.up_ = pressed;
-        }
-        if (key == GLFW_KEY_2) {
-            gCamera.movement_.down_ = pressed;
-        }
-        if (mods & GLFW_MOD_SHIFT) {
-            gCamera.movement_.fastSpeed_ = pressed;
-        }
-        if (key == GLFW_KEY_SPACE) {
-            gCamera.reset(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        if (gCamera.onKeyEvent(key, scancode, action, mods)) {
+            return;
         }
     });
 
-    glfwSetMouseButtonCallback(window, [](auto* window, int button, int action, int mods) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            gMouseState.pressedLeft = action == GLFW_PRESS;
+    glfwSetMouseButtonCallback(window, [](auto window, int button, int action, int mods) {
+        if (gCamera.onMouseButtonEvent(window, button, action, mods)) {
+            return;
         }
     });
 
-    glfwSetCursorPosCallback(window, [](auto* window, double x, double y) {
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        gMouseState.pos.x = static_cast<float>(x / width);
-        gMouseState.pos.y = static_cast<float>(y / height);
+    glfwSetCursorPosCallback(window, [](auto window, double x, double y) {
+        if (gCamera.onMouseMotionEvent(window, x, y)) {
+            return;
+        }
     });
 
     glfwMakeContextCurrent(window);
@@ -141,13 +114,8 @@ int main(void) {
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
 
-    double time = glfwGetTime();
-
     while (!glfwWindowShouldClose(window)) {
-        const double newTime = glfwGetTime();
-        float timeDelta = static_cast<float>(newTime - time);
-        time = newTime;
-        gCamera.update(timeDelta, gMouseState.pos, gMouseState.pressedLeft);
+        gCamera.onNextFrame();
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -174,9 +142,9 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
+    // TODO: Shaders to separate files
     // TODO: Multiple triangles
     // TODO: Wireframe
     // TODO: Landscape
-    // TODO: Simplify camera
     return 0;
 }
