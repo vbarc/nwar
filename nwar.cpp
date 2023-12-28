@@ -149,8 +149,11 @@ int main(void) {
     glfwTerminate();
 
     // TODO: Modernize uniforms
+    // TODO: Modernize input data
     // TODO: Landscape
     // TODO: Skybox
     // TODO: Blender model
+    // TODO: Nice model rendering
+    // TODO: Animation
     return 0;
 }
