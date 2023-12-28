@@ -3,6 +3,7 @@
 
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
+#include <vector>
 
 #include "NglCamera.h"
 #include "NglProgram.h"
@@ -13,7 +14,7 @@
 #include "ngllog.h"
 #include "nglvert.h"
 
-static const float vertices[] = {
+static const float vertexCoords[] = {
         -0.5f, -0.4f, 0.0f, 0.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
         0.0f,  0.5f,  0.0f, 1.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
         0.5f,  -0.4f, 0.0f, 1.0f, 0.5f,  0.0f, 1.5f, -0.4f, 0.0f,  //
@@ -83,16 +84,37 @@ int main(void) {
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
+    int vertexCoordsSize = sizeof(vertexCoords);
+    int vertexCoordsCount = static_cast<int>(std::size(vertexCoords));
+    std::vector<float> vertexBufferContent(vertexCoordsCount * 2);
+    memcpy(vertexBufferContent.data(), vertexCoords, vertexCoordsSize);
+    for (int i = 0; i < vertexCoordsCount; i += 9) {
+        vertexBufferContent[vertexCoordsCount + i + 0] = 1.0f;
+        vertexBufferContent[vertexCoordsCount + i + 1] = 0.0f;
+        vertexBufferContent[vertexCoordsCount + i + 2] = 0.0f;
+        vertexBufferContent[vertexCoordsCount + i + 3] = 0.0f;
+        vertexBufferContent[vertexCoordsCount + i + 4] = 1.0f;
+        vertexBufferContent[vertexCoordsCount + i + 5] = 0.0f;
+        vertexBufferContent[vertexCoordsCount + i + 6] = 0.0f;
+        vertexBufferContent[vertexCoordsCount + i + 7] = 0.0f;
+        vertexBufferContent[vertexCoordsCount + i + 8] = 1.0f;
+    }
+
     GLuint vertexBuffer;
     glGenBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     NGL_CHECK_ERRORS;
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertexCoordsSize * 2, vertexBufferContent.data(), GL_STATIC_DRAW);
     NGL_CHECK_ERRORS;
     glEnableVertexAttribArray(0 /*pos*/);
     NGL_CHECK_ERRORS;
     glVertexAttribPointer(0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0, static_cast<void*>(0));
+    NGL_CHECK_ERRORS;
+    glEnableVertexAttribArray(1 /*barypos_in*/);
+    NGL_CHECK_ERRORS;
+    glVertexAttribPointer(1 /*barypos_in*/, 3, GL_FLOAT, GL_FALSE, 0,
+                          reinterpret_cast<void*>(static_cast<intptr_t>(vertexCoordsSize)));
     NGL_CHECK_ERRORS;
 
     GLint mvpLocation = glGetUniformLocation(program, "mvp");
@@ -115,7 +137,7 @@ int main(void) {
         glm::mat4 mvp = p * v;
         glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(std::size(vertices) / 3));
+        glDrawArrays(GL_TRIANGLES, 0, vertexCoordsCount / 3);
         NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);
@@ -128,7 +150,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Wireframe
     // TODO: Modernize uniforms
     // TODO: Landscape
     // TODO: Skybox
