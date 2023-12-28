@@ -14,7 +14,12 @@
 #include "nglvert.h"
 
 static const float vertices[] = {
-        -0.5f, -0.4f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, -0.4f, 0.0f,
+        -0.5f, -0.4f, 0.0f, 0.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
+        0.0f,  0.5f,  0.0f, 1.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
+        0.5f,  -0.4f, 0.0f, 1.0f, 0.5f,  0.0f, 1.5f, -0.4f, 0.0f,  //
+        -0.5f, -0.4f, 0.0f, 0.5f, -0.4f, 0.0f, 0.0f, -1.4f, 0.0f,  //
+        0.0f,  -1.4f, 0.0f, 0.5f, -0.4f, 0.0f, 1.0f, -1.4f, 0.0f,  //
+        1.0f,  -1.4f, 0.0f, 0.5f, -0.4f, 0.0f, 1.5f, -0.4f, 0.0f,  //
 };
 
 NglCamera gCamera(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -110,7 +115,7 @@ int main(void) {
         glm::mat4 mvp = p * v;
         glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(std::size(vertices) / 3));
         NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);
@@ -123,10 +128,10 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Multiple triangles
     // TODO: Wireframe
     // TODO: Modernize uniforms
     // TODO: Landscape
     // TODO: Skybox
+    // TODO: Blender model
     return 0;
 }
