@@ -60,5 +60,11 @@
     <ClInclude Include="NglCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nglfrag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nglvert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,29 +8,10 @@
 #include "NglProgram.h"
 #include "ngldbg.h"
 #include "nglerr.h"
+#include "nglfrag.h"
 #include "nglgl.h"
 #include "ngllog.h"
-
-static const char* vertexShaderSrc = R"(
-#version 460 core
-
-layout (location=0) in vec3 pos;
-uniform mat4 mvp;
-
-void main() {
-    gl_Position = mvp * vec4(pos, 1);
-}
-)";
-
-static const char* fragmentShaderSrc = R"(
-#version 460 core
-
-layout (location=0) out vec4 color;
-
-void main() {
-    color = vec4(1, 0, 0, 1);
-}
-)";
+#include "nglvert.h"
 
 static const float vertices[] = {
         -0.5f, -0.4f, 0.0f, 0.0f, 0.5f, 0.0f, 0.5f, -0.4f, 0.0f,
@@ -88,7 +69,7 @@ int main(void) {
     nglEnableDebugIfNecessary();
 
     NglProgram program =
-            NglProgram::Builder().setVertexShader(vertexShaderSrc).setFragmentShader(fragmentShaderSrc).build();
+            NglProgram::Builder().setVertexShader(gVertexShaderSrc).setFragmentShader(gFragmentShaderSrc).build();
     program.use();
 
     GLuint vao;
@@ -142,7 +123,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Shaders to separate files
     // TODO: Multiple triangles
     // TODO: Wireframe
     // TODO: Modernize uniforms
