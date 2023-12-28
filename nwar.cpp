@@ -117,8 +117,6 @@ int main(void) {
                           reinterpret_cast<void*>(static_cast<intptr_t>(vertexCoordsSize)));
     NGL_CHECK_ERRORS;
 
-    GLint mvpLocation = glGetUniformLocation(program, "mvp");
-
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
 
@@ -135,7 +133,7 @@ int main(void) {
         glm::mat4 v = gCamera.getViewMatrix();
         glm::mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
         glm::mat4 mvp = p * v;
-        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+        glUniformMatrix4fv(0 /*mvp*/, 1, GL_FALSE, glm::value_ptr(mvp));
 
         glDrawArrays(GL_TRIANGLES, 0, vertexCoordsCount / 3);
         NGL_CHECK_ERRORS;
