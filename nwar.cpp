@@ -114,20 +114,27 @@ int main(void) {
     }
 
     GLuint vertexBuffer;
-    glGenBuffers(1, &vertexBuffer);
+    glCreateBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glNamedBufferStorage(vertexBuffer, vertexCoordsSize * 2, vertexBufferContent.data(), 0);
     NGL_CHECK_ERRORS;
-    glBufferData(GL_ARRAY_BUFFER, vertexCoordsSize * 2, vertexBufferContent.data(), GL_STATIC_DRAW);
+
+    glVertexArrayAttribFormat(vao, 0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0);
     NGL_CHECK_ERRORS;
-    glEnableVertexAttribArray(0 /*pos*/);
+    glVertexArrayAttribBinding(vao, 0, 0);
     NGL_CHECK_ERRORS;
-    glVertexAttribPointer(0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0, static_cast<void*>(0));
+    glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(float) * 3);
     NGL_CHECK_ERRORS;
-    glEnableVertexAttribArray(1 /*barypos_in*/);
+    glEnableVertexArrayAttrib(vao, 0);
     NGL_CHECK_ERRORS;
-    glVertexAttribPointer(1 /*barypos_in*/, 3, GL_FLOAT, GL_FALSE, 0,
-                          reinterpret_cast<void*>(static_cast<intptr_t>(vertexCoordsSize)));
+
+    glVertexArrayAttribFormat(vao, 1 /*barypos_in*/, 3, GL_FLOAT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(vao, 1, 1);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(vao, 1, vertexBuffer, vertexCoordsSize, sizeof(float) * 3);
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(vao, 1);
     NGL_CHECK_ERRORS;
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
@@ -159,11 +166,12 @@ int main(void) {
 
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &frameUniformBuffer);
 
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Modernize buffers
+    // TODO: Structure vertices better
     // TODO: Landscape
     // TODO: Skybox
     // TODO: Blender model
