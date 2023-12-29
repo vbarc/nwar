@@ -82,21 +82,19 @@ int main(void) {
             NglProgram::Builder().setVertexShader(gVertexShaderSrc).setFragmentShader(gFragmentShaderSrc).build();
     program.use();
 
+    int frameUniformSize = sizeof(FrameUniform);
+    GLuint frameUniformBuffer;
+    glCreateBuffers(1, &frameUniformBuffer);
+    NGL_CHECK_ERRORS;
+    glNamedBufferStorage(frameUniformBuffer, frameUniformSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+    NGL_CHECK_ERRORS;
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
+    NGL_CHECK_ERRORS;
+
     GLuint vao;
     glCreateVertexArrays(1, &vao);
     NGL_CHECK_ERRORS;
     glBindVertexArray(vao);
-    NGL_CHECK_ERRORS;
-
-    int frameUniformSize = sizeof(FrameUniform);
-    GLuint frameUniformBuffer;
-    glGenBuffers(1, &frameUniformBuffer);
-    NGL_CHECK_ERRORS;
-    glBindBuffer(GL_UNIFORM_BUFFER, frameUniformBuffer);
-    NGL_CHECK_ERRORS;
-    glBufferStorage(GL_UNIFORM_BUFFER, frameUniformSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
-    NGL_CHECK_ERRORS;
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
     NGL_CHECK_ERRORS;
 
     int vertexCoordsSize = sizeof(vertexCoords);
