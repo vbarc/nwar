@@ -14,20 +14,23 @@
 #include "ngllog.h"
 #include "nglvert.h"
 
+using glm::mat4;
+using glm::vec3;
+
 struct FrameUniform {
-    glm::mat4 mvp;
+    mat4 mvp;
 };
 
-static const float vertexCoords[] = {
-        -0.5f, -0.4f, 0.0f, 0.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
-        0.0f,  0.5f,  0.0f, 1.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
-        0.5f,  -0.4f, 0.0f, 1.0f, 0.5f,  0.0f, 1.5f, -0.4f, 0.0f,  //
-        -0.5f, -0.4f, 0.0f, 0.5f, -0.4f, 0.0f, 0.0f, -1.4f, 0.0f,  //
-        0.0f,  -1.4f, 0.0f, 0.5f, -0.4f, 0.0f, 1.0f, -1.4f, 0.0f,  //
-        1.0f,  -1.4f, 0.0f, 0.5f, -0.4f, 0.0f, 1.5f, -0.4f, 0.0f,  //
+static const vec3 vertices[] = {
+        vec3(-0.5f, -0.4f, 0.0f), vec3(0.0f, 0.5f, 0.0f),  vec3(0.5f, -0.4f, 0.0f),  //
+        vec3(0.0f, 0.5f, 0.0f),   vec3(1.0f, 0.5f, 0.0f),  vec3(0.5f, -0.4f, 0.0f),  //
+        vec3(0.5f, -0.4f, 0.0f),  vec3(1.0f, 0.5f, 0.0f),  vec3(1.5f, -0.4f, 0.0f),  //
+        vec3(-0.5f, -0.4f, 0.0f), vec3(0.5f, -0.4f, 0.0f), vec3(0.0f, -1.4f, 0.0f),  //
+        vec3(0.0f, -1.4f, 0.0f),  vec3(0.5f, -0.4f, 0.0f), vec3(1.0f, -1.4f, 0.0f),  //
+        vec3(1.0f, -1.4f, 0.0f),  vec3(0.5f, -0.4f, 0.0f), vec3(1.5f, -0.4f, 0.0f),  //
 };
 
-NglCamera gCamera(glm::vec3(1.0f, 1.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+NglCamera gCamera(vec3(1.0f, 1.0f, 2.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 int main(void) {
     glfwSetErrorCallback(
@@ -82,6 +85,7 @@ int main(void) {
             NglProgram::Builder().setVertexShader(gVertexShaderSrc).setFragmentShader(gFragmentShaderSrc).build();
     program.use();
 
+    // FrameUniform
     int frameUniformSize = sizeof(FrameUniform);
     GLuint frameUniformBuffer;
     glCreateBuffers(1, &frameUniformBuffer);
@@ -91,39 +95,34 @@ int main(void) {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
     NGL_CHECK_ERRORS;
 
+    // Vertices
     GLuint vao;
     glCreateVertexArrays(1, &vao);
     NGL_CHECK_ERRORS;
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
-    int vertexCoordsSize = sizeof(vertexCoords);
-    int vertexCoordsCount = static_cast<int>(std::size(vertexCoords));
-    std::vector<float> vertexBufferContent(vertexCoordsCount * 2);
-    memcpy(vertexBufferContent.data(), vertexCoords, vertexCoordsSize);
-    for (int i = 0; i < vertexCoordsCount; i += 9) {
-        vertexBufferContent[vertexCoordsCount + i + 0] = 1.0f;
-        vertexBufferContent[vertexCoordsCount + i + 1] = 0.0f;
-        vertexBufferContent[vertexCoordsCount + i + 2] = 0.0f;
-        vertexBufferContent[vertexCoordsCount + i + 3] = 0.0f;
-        vertexBufferContent[vertexCoordsCount + i + 4] = 1.0f;
-        vertexBufferContent[vertexCoordsCount + i + 5] = 0.0f;
-        vertexBufferContent[vertexCoordsCount + i + 6] = 0.0f;
-        vertexBufferContent[vertexCoordsCount + i + 7] = 0.0f;
-        vertexBufferContent[vertexCoordsCount + i + 8] = 1.0f;
+    int verticesSize = sizeof(vertices);
+    int verticesCount = static_cast<int>(std::size(vertices));
+    std::vector<vec3> vertexBufferContent(verticesCount * 2);
+    memcpy(vertexBufferContent.data(), vertices, verticesSize);
+    for (int i = 0; i < verticesCount; i += 3) {
+        vertexBufferContent[verticesCount + i + 0] = vec3(1.0f, 0.0f, 0.0f);
+        vertexBufferContent[verticesCount + i + 1] = vec3(0.0f, 1.0f, 0.0f);
+        vertexBufferContent[verticesCount + i + 2] = vec3(0.0f, 0.0f, 1.0f);
     }
 
     GLuint vertexBuffer;
     glCreateBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(vertexBuffer, vertexCoordsSize * 2, vertexBufferContent.data(), 0);
+    glNamedBufferStorage(vertexBuffer, vertexBufferContent.size() * sizeof(vec3), vertexBufferContent.data(), 0);
     NGL_CHECK_ERRORS;
 
     glVertexArrayAttribFormat(vao, 0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0);
     NGL_CHECK_ERRORS;
     glVertexArrayAttribBinding(vao, 0, 0);
     NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(float) * 3);
+    glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(vec3));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(vao, 0);
     NGL_CHECK_ERRORS;
@@ -132,7 +131,7 @@ int main(void) {
     NGL_CHECK_ERRORS;
     glVertexArrayAttribBinding(vao, 1, 1);
     NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(vao, 1, vertexBuffer, vertexCoordsSize, sizeof(float) * 3);
+    glVertexArrayVertexBuffer(vao, 1, vertexBuffer, verticesSize, sizeof(vec3));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(vao, 1);
     NGL_CHECK_ERRORS;
@@ -152,12 +151,12 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT);
         NGL_CHECK_ERRORS;
 
-        glm::mat4 v = gCamera.getViewMatrix();
-        glm::mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
+        mat4 v = gCamera.getViewMatrix();
+        mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
         frameUniform.mvp = p * v;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
-        glDrawArrays(GL_TRIANGLES, 0, vertexCoordsCount / 3);
+        glDrawArrays(GL_TRIANGLES, 0, verticesCount);
         NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);
@@ -171,7 +170,7 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Structure vertices better
+    // TODO: Indexed draw
     // TODO: Landscape
     // TODO: Skybox
     // TODO: Blender model
