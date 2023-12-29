@@ -14,6 +14,10 @@
 #include "ngllog.h"
 #include "nglvert.h"
 
+struct FrameUniform {
+    glm::mat4 mvp;
+};
+
 static const float vertexCoords[] = {
         -0.5f, -0.4f, 0.0f, 0.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
         0.0f,  0.5f,  0.0f, 1.0f, 0.5f,  0.0f, 0.5f, -0.4f, 0.0f,  //
@@ -84,6 +88,17 @@ int main(void) {
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
+    int frameUniformSize = sizeof(FrameUniform);
+    GLuint frameUniformBuffer;
+    glGenBuffers(1, &frameUniformBuffer);
+    NGL_CHECK_ERRORS;
+    glBindBuffer(GL_UNIFORM_BUFFER, frameUniformBuffer);
+    NGL_CHECK_ERRORS;
+    glBufferStorage(GL_UNIFORM_BUFFER, frameUniformSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
+    NGL_CHECK_ERRORS;
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
+    NGL_CHECK_ERRORS;
+
     int vertexCoordsSize = sizeof(vertexCoords);
     int vertexCoordsCount = static_cast<int>(std::size(vertexCoords));
     std::vector<float> vertexBufferContent(vertexCoordsCount * 2);
@@ -120,6 +135,8 @@ int main(void) {
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
 
+    FrameUniform frameUniform;
+
     while (!glfwWindowShouldClose(window)) {
         gCamera.onNextFrame();
 
@@ -132,8 +149,8 @@ int main(void) {
 
         glm::mat4 v = gCamera.getViewMatrix();
         glm::mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
-        glm::mat4 mvp = p * v;
-        glUniformMatrix4fv(0 /*mvp*/, 1, GL_FALSE, glm::value_ptr(mvp));
+        frameUniform.mvp = p * v;
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
         glDrawArrays(GL_TRIANGLES, 0, vertexCoordsCount / 3);
         NGL_CHECK_ERRORS;
@@ -148,12 +165,11 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Modernize uniforms
-    // TODO: Modernize input data
+    // TODO: Modernize buffers
     // TODO: Landscape
     // TODO: Skybox
     // TODO: Blender model
-    // TODO: Nice model rendering
+    // TODO: Nice rendering (lighting, grass material, cloth material?)
     // TODO: Animation
     return 0;
 }
