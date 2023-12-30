@@ -75,75 +75,34 @@ void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32
         for (int i = 0; i <= kGranularity; i++) {
             float x = kMinX + (kMaxX - kMinX) / kGranularity * i;
             float z = kMinZ + (kMaxZ - kMinZ) / kGranularity * j;
-            int basePixelX = std::min(static_cast<int>((mPixelWidth - 1) * 1.0 / kGranularity * i), mPixelWidth - 2);
-            int basePixelZ = std::min(static_cast<int>((mPixelDepth - 1) * 1.0 / kGranularity * j), mPixelDepth - 2);
-            float onePixelWidth = (kMaxX - kMinX) / (mPixelWidth - 1);
-            float onePixelDepth = (kMaxZ - kMinZ) / (mPixelDepth - 1);
+            int basePixelX =
+                    std::min(static_cast<int>((mPixelWidth - 3) * 1.0 / kGranularity * i) + 1, mPixelWidth - 3);
+            int basePixelZ =
+                    std::min(static_cast<int>((mPixelDepth - 3) * 1.0 / kGranularity * j) + 1, mPixelDepth - 3);
+            float onePixelWidth = (kMaxX - kMinX) / (mPixelWidth - 3);
+            float onePixelDepth = (kMaxZ - kMinZ) / (mPixelDepth - 3);
             float baseX = kMinX + onePixelWidth * basePixelX;
             float baseZ = kMinZ + onePixelDepth * basePixelZ;
             float normalizedX = (x - baseX) / onePixelWidth;
             float normalizedZ = (z - baseZ) / onePixelDepth;
 
             EVector f;
-            f(5) = sample(basePixelX, basePixelZ);
-            f(6) = sample(basePixelX + 1, basePixelZ);
-            f(9) = sample(basePixelX, basePixelZ + 1);
+            f(0) = sample(basePixelX - 1, basePixelZ - 1);
+            f(1) = sample(basePixelX + 0, basePixelZ - 1);
+            f(2) = sample(basePixelX + 1, basePixelZ - 1);
+            f(3) = sample(basePixelX + 2, basePixelZ - 1);
+            f(4) = sample(basePixelX - 1, basePixelZ + 0);
+            f(5) = sample(basePixelX + 0, basePixelZ + 0);
+            f(6) = sample(basePixelX + 1, basePixelZ + 0);
+            f(7) = sample(basePixelX + 2, basePixelZ + 0);
+            f(8) = sample(basePixelX - 1, basePixelZ + 1);
+            f(9) = sample(basePixelX + 0, basePixelZ + 1);
             f(10) = sample(basePixelX + 1, basePixelZ + 1);
-
-            if (basePixelX > 0) {
-                f(4) = sample(basePixelX - 1, basePixelZ);
-                f(8) = sample(basePixelX - 1, basePixelZ + 1);
-            } else {
-                f(4) = f(5) + f(5) - f(6);
-                f(8) = f(9) + f(9) - f(10);
-            }
-            if (basePixelZ > 0) {
-                f(1) = sample(basePixelX, basePixelZ - 1);
-                f(2) = sample(basePixelX + 1, basePixelZ - 1);
-            } else {
-                f(1) = f(5) + f(5) - f(9);
-                f(2) = f(6) + f(6) - f(10);
-            }
-
-            if (basePixelX < mPixelWidth - 2) {
-                f(7) = sample(basePixelX + 2, basePixelZ);
-                f(11) = sample(basePixelX + 2, basePixelZ + 1);
-            } else {
-                f(7) = f(6) + f(6) - f(5);
-                f(11) = f(10) + f(10) - f(9);
-            }
-
-            if (basePixelZ < mPixelDepth - 2) {
-                f(13) = sample(basePixelX, basePixelZ + 2);
-                f(14) = sample(basePixelX + 1, basePixelZ + 2);
-            } else {
-                f(13) = f(9) + f(9) - f(5);
-                f(14) = f(10) + f(10) - f(6);
-            }
-
-            if (basePixelX > 0 && basePixelZ > 0) {
-                f(0) = sample(basePixelX - 1, basePixelZ - 1);
-            } else {
-                f(0) = (f(4) + f(4) - f(8) + f(1) + f(1) - f(2)) / 2;
-            }
-
-            if (basePixelX < mPixelWidth - 2 && basePixelZ > 0) {
-                f(3) = sample(basePixelX + 2, basePixelZ - 1);
-            } else {
-                f(3) = (f(2) + f(2) - f(1) + f(7) + f(7) - f(11)) / 2;
-            }
-
-            if (basePixelX > 0 && basePixelZ < mPixelDepth - 2) {
-                f(12) = sample(basePixelX - 1, basePixelZ + 2);
-            } else {
-                f(12) = (f(8) + f(8) - f(4) + f(13) + f(13) - f(14)) / 2;
-            }
-
-            if (basePixelX < mPixelWidth - 2 && basePixelZ < mPixelDepth - 2) {
-                f(15) = sample(basePixelX + 2, basePixelZ + 2);
-            } else {
-                f(15) = (f(14) + f(14) - f(13) + f(11) + f(11) - f(7)) / 2;
-            }
+            f(11) = sample(basePixelX + 2, basePixelZ + 1);
+            f(12) = sample(basePixelX - 1, basePixelZ + 2);
+            f(13) = sample(basePixelX + 0, basePixelZ + 2);
+            f(14) = sample(basePixelX + 1, basePixelZ + 2);
+            f(15) = sample(basePixelX + 2, basePixelZ + 2);
 
             float y = interpolateBicubic(f, normalizedX, normalizedZ);
 
