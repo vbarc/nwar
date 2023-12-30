@@ -63,10 +63,14 @@ NglTerrain::~NglTerrain() {
 
 static float interpolateBicubic(const EVector& f, float x, float y) {
     EVector a = kSolver.solve(f);
-    return a(0) + a(1) * x + a(2) * x * x + a(3) * x * x * x                                      //
-           + a(4) * y + a(5) * y * x + a(6) * y * x * x + a(7) * y * x * x * x                    //
-           + a(8) * y * y + a(9) * y * y * x + a(10) * y * y * x * x + a(11) * y * y * x * x * x  //
-           + a(12) * y * y * y + a(13) * y * y * y * x + a(14) * y * y * y * x * x + a(15) * y * y * y * x * x * x;
+    float x2 = x * x;
+    float x3 = x2 * x;
+    float y2 = y * y;
+    float y3 = y2 * y;
+    return a(0) + a(1) * x + a(2) * x2 + a(3) * x3                          //
+           + a(4) * y + a(5) * y * x + a(6) * y * x2 + a(7) * y * x3        //
+           + a(8) * y2 + a(9) * y2 * x + a(10) * y2 * x2 + a(11) * y2 * x3  //
+           + a(12) * y3 + a(13) * y3 * x + a(14) * y3 * x2 + a(15) * y3 * x3;
 }
 
 void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32_t>* indicesOut) {
