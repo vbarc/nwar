@@ -19,6 +19,7 @@ public:
     class Builder {
     public:
         Builder& setVertexShader(const char* shaderCode);
+        Builder& setGeometryShader(const char* shaderCode);
         Builder& setFragmentShader(const char* shaderCode);
 
         NglProgram build();
@@ -27,6 +28,7 @@ public:
         static GLuint generateShader(GLenum shaderType, const char* shaderCode, const char* label);
 
         std::string mVertexShaderCode;
+        std::string mGeometryShaderCode;
         std::string mFragmentShaderCode;
     };
 

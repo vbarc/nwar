@@ -41,6 +41,12 @@ NglProgram::Builder& NglProgram::Builder::setVertexShader(const char* shaderCode
     return *this;
 }
 
+NglProgram::Builder& NglProgram::Builder::setGeometryShader(const char* shaderCode) {
+    NGL_ASSERT(shaderCode);
+    mGeometryShaderCode = shaderCode;
+    return *this;
+}
+
 NglProgram::Builder& NglProgram::Builder::setFragmentShader(const char* shaderCode) {
     NGL_ASSERT(shaderCode);
     mFragmentShaderCode = shaderCode;
@@ -52,12 +58,20 @@ NglProgram NglProgram::Builder::build() {
     NGL_ASSERT(!mFragmentShaderCode.empty());
 
     GLuint vertexShader = generateShader(GL_VERTEX_SHADER, mVertexShaderCode.c_str(), "mVertexShaderCode");
+    GLuint geometryShader =
+            !mGeometryShaderCode.empty()
+                    ? generateShader(GL_GEOMETRY_SHADER, mGeometryShaderCode.c_str(), "mGeometryShaderCode")
+                    : 0;
     GLuint fragmentShader = generateShader(GL_FRAGMENT_SHADER, mFragmentShaderCode.c_str(), "mFragmentShaderCode");
 
     GLuint program = glCreateProgram();
     NGL_CHECK_ERRORS;
     glAttachShader(program, vertexShader);
     NGL_CHECK_ERRORS;
+    if (geometryShader) {
+        glAttachShader(program, geometryShader);
+        NGL_CHECK_ERRORS;
+    }
     glAttachShader(program, fragmentShader);
     NGL_CHECK_ERRORS;
     glLinkProgram(program);

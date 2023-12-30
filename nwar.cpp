@@ -10,6 +10,7 @@
 #include "ngldbg.h"
 #include "nglerr.h"
 #include "nglfrag.h"
+#include "nglgeom.h"
 #include "nglgl.h"
 #include "ngllog.h"
 #include "nglvert.h"
@@ -81,8 +82,11 @@ int main(void) {
 
     nglEnableDebugIfNecessary();
 
-    NglProgram program =
-            NglProgram::Builder().setVertexShader(gVertexShaderSrc).setFragmentShader(gFragmentShaderSrc).build();
+    NglProgram program = NglProgram::Builder()
+                                 .setVertexShader(gVertexShaderSrc)
+                                 .setGeometryShader(gGeometryShaderSrc)
+                                 .setFragmentShader(gFragmentShaderSrc)
+                                 .build();
     program.use();
 
     // FrameUniform
@@ -102,20 +106,10 @@ int main(void) {
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
-    int verticesSize = sizeof(vertices);
-    int verticesCount = static_cast<int>(std::size(vertices));
-    std::vector<vec3> vertexBufferContent(verticesCount * 2);
-    memcpy(vertexBufferContent.data(), vertices, verticesSize);
-    for (int i = 0; i < verticesCount; i += 3) {
-        vertexBufferContent[verticesCount + i + 0] = vec3(1.0f, 0.0f, 0.0f);
-        vertexBufferContent[verticesCount + i + 1] = vec3(0.0f, 1.0f, 0.0f);
-        vertexBufferContent[verticesCount + i + 2] = vec3(0.0f, 0.0f, 1.0f);
-    }
-
     GLuint vertexBuffer;
     glCreateBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(vertexBuffer, vertexBufferContent.size() * sizeof(vec3), vertexBufferContent.data(), 0);
+    glNamedBufferStorage(vertexBuffer, sizeof(vertices), vertices, 0);
     NGL_CHECK_ERRORS;
 
     glVertexArrayAttribFormat(vao, 0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0);
@@ -125,15 +119,6 @@ int main(void) {
     glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(vec3));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(vao, 0);
-    NGL_CHECK_ERRORS;
-
-    glVertexArrayAttribFormat(vao, 1 /*barypos_in*/, 3, GL_FLOAT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(vao, 1, 1);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(vao, 1, vertexBuffer, verticesSize, sizeof(vec3));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(vao, 1);
     NGL_CHECK_ERRORS;
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
@@ -156,7 +141,7 @@ int main(void) {
         frameUniform.mvp = p * v;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
-        glDrawArrays(GL_TRIANGLES, 0, verticesCount);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(std::size(vertices)));
         NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);

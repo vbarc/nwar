@@ -164,6 +164,7 @@
     <ClInclude Include="ngldbg.h" />
     <ClInclude Include="nglerr.h" />
     <ClInclude Include="nglfrag.h" />
+    <ClInclude Include="nglgeom.h" />
     <ClInclude Include="nglgl.h" />
     <ClInclude Include="ngllog.h" />
     <ClInclude Include="NglProgram.h" />
