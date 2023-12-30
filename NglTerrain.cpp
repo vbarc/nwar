@@ -15,7 +15,7 @@ constexpr float kMaxX = 100.0f;
 constexpr float kMinZ = -100.0f;
 constexpr float kMaxZ = 100.0f;
 constexpr float kMinY = 0.0f;
-constexpr float kMaxY = 1.0f;
+constexpr float kMaxY = 5.0f;
 constexpr int kGranularity = 100;
 
 NglTerrain::NglTerrain() {
