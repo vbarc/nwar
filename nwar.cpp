@@ -23,21 +23,6 @@ struct FrameUniform {
     mat4 mvp;
 };
 
-static const vec3 vertices[] = {
-        vec3(-0.5f, 2.0f, 0.0f), vec3(0.5f, 2.0f, 0.0f),                          //
-        vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f),  //
-        vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.0, 0.0f),                           //
-};
-
-static const uint32_t indices[] = {
-        2, 0, 3,  //
-        3, 0, 1,  //
-        3, 1, 4,  //
-        5, 2, 3,  //
-        5, 3, 6,  //
-        6, 3, 4,  //
-};
-
 NglCamera gCamera(vec3(1.0f, 2.0f, 2.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 int main(void) {
@@ -115,11 +100,15 @@ int main(void) {
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
+    std::vector<vec3> vertices;
+    std::vector<uint32_t> indices;
+    terrain.getData(&vertices, &indices);
+
     // Vertices
     GLuint vertexBuffer;
     glCreateBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(vertexBuffer, sizeof(vertices), vertices, 0);
+    glNamedBufferStorage(vertexBuffer, vertices.size() * sizeof(vec3), vertices.data(), 0);
     NGL_CHECK_ERRORS;
 
     glVertexArrayAttribFormat(vao, 0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0);
@@ -135,7 +124,7 @@ int main(void) {
     GLuint indexBuffer;
     glCreateBuffers(1, &indexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(indexBuffer, sizeof(indices), indices, 0);
+    glNamedBufferStorage(indexBuffer, indices.size() * sizeof(uint32_t), indices.data(), 0);
     NGL_CHECK_ERRORS;
     glVertexArrayElementBuffer(vao, indexBuffer);
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 

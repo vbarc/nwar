@@ -1,5 +1,7 @@
 #include "NglCamera.h"
 
+#include <algorithm>
+
 #include "nglgl.h"
 
 constexpr float kAcceleration = 100.0f;
