@@ -7,6 +7,7 @@
 
 #include "NglCamera.h"
 #include "NglProgram.h"
+#include "NglTerrain.h"
 #include "ngldbg.h"
 #include "nglerr.h"
 #include "nglfrag.h"
@@ -40,6 +41,8 @@ static const uint32_t indices[] = {
 NglCamera gCamera(vec3(1.0f, 2.0f, 2.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 int main(void) {
+    NglTerrain terrain;
+
     glfwSetErrorCallback(
             [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
 
@@ -171,7 +174,7 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Landscape
+    // TODO: Terrain
     // TODO: Skybox
     // TODO: Blender model
     // TODO: Nice rendering (lighting, grass material, cloth material?)

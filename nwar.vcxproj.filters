@@ -33,6 +33,9 @@
     <ClCompile Include="NglCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NglTerrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -67,6 +70,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nglgeom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NglTerrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
