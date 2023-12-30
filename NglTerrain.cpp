@@ -85,8 +85,8 @@ void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32
                     std::min(static_cast<int>((mPixelDepth - 3) * 1.0 / kGranularity * j) + 1, mPixelDepth - 3);
             float onePixelWidth = (kMaxX - kMinX) / (mPixelWidth - 3);
             float onePixelDepth = (kMaxZ - kMinZ) / (mPixelDepth - 3);
-            float baseX = kMinX + onePixelWidth * basePixelX;
-            float baseZ = kMinZ + onePixelDepth * basePixelZ;
+            float baseX = kMinX + onePixelWidth * (basePixelX - 1);
+            float baseZ = kMinZ + onePixelDepth * (basePixelZ - 1);
             float normalizedX = (x - baseX) / onePixelWidth;
             float normalizedZ = (z - baseZ) / onePixelDepth;
 
