@@ -23,15 +23,21 @@ struct FrameUniform {
 };
 
 static const vec3 vertices[] = {
-        vec3(-0.5f, -0.4f, 0.0f), vec3(0.0f, 0.5f, 0.0f),  vec3(0.5f, -0.4f, 0.0f),  //
-        vec3(0.0f, 0.5f, 0.0f),   vec3(1.0f, 0.5f, 0.0f),  vec3(0.5f, -0.4f, 0.0f),  //
-        vec3(0.5f, -0.4f, 0.0f),  vec3(1.0f, 0.5f, 0.0f),  vec3(1.5f, -0.4f, 0.0f),  //
-        vec3(-0.5f, -0.4f, 0.0f), vec3(0.5f, -0.4f, 0.0f), vec3(0.0f, -1.4f, 0.0f),  //
-        vec3(0.0f, -1.4f, 0.0f),  vec3(0.5f, -0.4f, 0.0f), vec3(1.0f, -1.4f, 0.0f),  //
-        vec3(1.0f, -1.4f, 0.0f),  vec3(0.5f, -0.4f, 0.0f), vec3(1.5f, -0.4f, 0.0f),  //
+        vec3(-0.5f, 2.0f, 0.0f), vec3(0.5f, 2.0f, 0.0f),                          //
+        vec3(-1.0f, 1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec3(1.0f, 1.0f, 0.0f),  //
+        vec3(-0.5f, 0.0f, 0.0f), vec3(0.5f, 0.0, 0.0f),                           //
 };
 
-NglCamera gCamera(vec3(1.0f, 1.0f, 2.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+static const uint32_t indices[] = {
+        2, 0, 3,  //
+        3, 0, 1,  //
+        3, 1, 4,  //
+        5, 2, 3,  //
+        5, 3, 6,  //
+        6, 3, 4,  //
+};
+
+NglCamera gCamera(vec3(1.0f, 2.0f, 2.0f), vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 int main(void) {
     glfwSetErrorCallback(
@@ -99,13 +105,14 @@ int main(void) {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
     NGL_CHECK_ERRORS;
 
-    // Vertices
+    // VAO
     GLuint vao;
     glCreateVertexArrays(1, &vao);
     NGL_CHECK_ERRORS;
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
+    // Vertices
     GLuint vertexBuffer;
     glCreateBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
@@ -120,6 +127,14 @@ int main(void) {
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(vao, 0);
     NGL_CHECK_ERRORS;
+
+    // Indices
+    GLuint indexBuffer;
+    glCreateBuffers(1, &indexBuffer);
+    NGL_CHECK_ERRORS;
+    glNamedBufferStorage(indexBuffer, sizeof(indices), indices, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayElementBuffer(vao, indexBuffer);
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
@@ -141,13 +156,14 @@ int main(void) {
         frameUniform.mvp = p * v;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<int>(std::size(vertices)));
+        glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(indices)), GL_UNSIGNED_INT, 0);
         NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    glDeleteBuffers(1, &indexBuffer);
     glDeleteBuffers(1, &vertexBuffer);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &frameUniformBuffer);
@@ -155,7 +171,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Indexed draw
     // TODO: Landscape
     // TODO: Skybox
     // TODO: Blender model
