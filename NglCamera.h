@@ -18,6 +18,7 @@ public:
 
 private:
     void reset();
+    void resetUp();
 
     const glm::vec3 mOriginalPosition;
     const glm::vec3 mOriginalTarget;

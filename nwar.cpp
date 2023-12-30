@@ -23,7 +23,7 @@ struct FrameUniform {
     mat4 mvp;
 };
 
-NglCamera gCamera(vec3(12.0f, 12.0f, 24.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+NglCamera gCamera(vec3(-20.0f, 15.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
 int main(void) {
     NglTerrain terrain;

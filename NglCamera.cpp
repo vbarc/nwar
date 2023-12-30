@@ -42,8 +42,12 @@ bool NglCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
         mMoveOrder.down = pressed;
         handled = true;
     }
-    if (key == GLFW_KEY_SPACE) {
+    if (key == GLFW_KEY_X) {
         reset();
+        handled = true;
+    }
+    if (key == GLFW_KEY_SPACE) {
+        resetUp();
         handled = true;
     }
     mMoveOrder.faster = (mods & GLFW_MOD_SHIFT) != 0;
@@ -141,5 +145,12 @@ glm::mat4 NglCamera::getViewMatrix() const {
 void NglCamera::reset() {
     mPosition = mOriginalPosition;
     mLookAtOrientation = glm::lookAt(mOriginalPosition, mOriginalTarget, mOriginalUp);
+    mVelocity = glm::vec3(0.0f);
+}
+
+void NglCamera::resetUp() {
+    glm::mat4 orientation = glm::mat4_cast(mLookAtOrientation);
+    glm::vec3 dir = -glm::vec3(orientation[0][2], orientation[1][2], orientation[2][2]);
+    mLookAtOrientation = glm::lookAt(mPosition, mPosition + dir, mOriginalUp);
     mVelocity = glm::vec3(0.0f);
 }

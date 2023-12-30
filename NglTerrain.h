@@ -12,6 +12,8 @@ public:
     void getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32_t>* indicesOut);
 
 private:
+    float sample(int pixelX, int pixelZ);
+
     int mPixelWidth;
     int mPixelDepth;
     unsigned char* mPixelData;
