@@ -130,6 +130,8 @@ int main(void) {
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
+    glEnable(GL_DEPTH_TEST);
+    NGL_CHECK_ERRORS;
 
     FrameUniform frameUniform;
 
@@ -140,7 +142,7 @@ int main(void) {
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
         NGL_CHECK_ERRORS;
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         NGL_CHECK_ERRORS;
 
         mat4 v = gCamera.getViewMatrix();
