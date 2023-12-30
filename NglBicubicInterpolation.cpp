@@ -29,6 +29,8 @@ const auto kSolver =
         }
                 .colPivHouseholderQr();
 
+NglBicubicInterpolation::NglBicubicInterpolation() : mA{0} {}
+
 NglBicubicInterpolation::NglBicubicInterpolation(float samples[16]) {
     EVector f{samples};
     EVector a = kSolver.solve(f);

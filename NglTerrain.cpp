@@ -36,6 +36,21 @@ NglTerrain::~NglTerrain() {
 }
 
 void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32_t>* indicesOut) {
+    std::vector<std::vector<NglBicubicInterpolation>> interpolations;
+    interpolations.resize(mPixelDepth - 2);
+    for (int j = 1; j < mPixelDepth - 2; j++) {
+        interpolations[j].resize(mPixelWidth - 2);
+        for (int i = 1; i < mPixelDepth - 2; i++) {
+            float f[16] = {
+                    sample(i - 1, j - 1), sample(i + 0, j - 1), sample(i + 1, j - 1), sample(i + 2, j - 1),
+                    sample(i - 1, j + 0), sample(i + 0, j + 0), sample(i + 1, j + 0), sample(i + 2, j + 0),
+                    sample(i - 1, j + 1), sample(i + 0, j + 1), sample(i + 1, j + 1), sample(i + 2, j + 1),
+                    sample(i - 1, j + 2), sample(i + 0, j + 2), sample(j + 1, j + 2), sample(i + 2, j + 2),
+            };
+            interpolations[j][i] = NglBicubicInterpolation(f);
+        }
+    }
+
     verticesOut->reserve((kGranularity + 1) * (kGranularity + 1));
     for (int j = 0; j <= kGranularity; j++) {
         for (int i = 0; i <= kGranularity; i++) {
@@ -52,27 +67,7 @@ void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32
             float normalizedX = (x - baseX) / onePixelWidth;
             float normalizedZ = (z - baseZ) / onePixelDepth;
 
-            float f[16] = {
-                    sample(basePixelX - 1, basePixelZ - 1),  //
-                    sample(basePixelX + 0, basePixelZ - 1),  //
-                    sample(basePixelX + 1, basePixelZ - 1),  //
-                    sample(basePixelX + 2, basePixelZ - 1),  //
-                    sample(basePixelX - 1, basePixelZ + 0),  //
-                    sample(basePixelX + 0, basePixelZ + 0),  //
-                    sample(basePixelX + 1, basePixelZ + 0),  //
-                    sample(basePixelX + 2, basePixelZ + 0),  //
-                    sample(basePixelX - 1, basePixelZ + 1),  //
-                    sample(basePixelX + 0, basePixelZ + 1),  //
-                    sample(basePixelX + 1, basePixelZ + 1),  //
-                    sample(basePixelX + 2, basePixelZ + 1),  //
-                    sample(basePixelX - 1, basePixelZ + 2),  //
-                    sample(basePixelX + 0, basePixelZ + 2),  //
-                    sample(basePixelX + 1, basePixelZ + 2),  //
-                    sample(basePixelX + 2, basePixelZ + 2),  //
-            };
-            NglBicubicInterpolation interp(f);
-
-            float y = interp.interpolate(normalizedX, normalizedZ);
+            float y = interpolations[basePixelZ][basePixelX].interpolate(normalizedX, normalizedZ);
 
             verticesOut->push_back(vec3(x, y, z));
         }
