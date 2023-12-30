@@ -47,7 +47,7 @@ bool NglCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
         handled = true;
     }
     if (key == GLFW_KEY_SPACE) {
-        resetUp();
+        reset();
         handled = true;
     }
     mMoveOrder.faster = (mods & GLFW_MOD_SHIFT) != 0;
@@ -79,8 +79,9 @@ bool NglCamera::onMouseMotionEvent(GLFWwindow* window, double x, double y) {
         glfwGetFramebufferSize(window, &width, &height);
         float base = (width + height) / 2.0f;
         glm::vec2 mouseDelta = (mousePosition - mMousePositionAtRotationStart) / base;
-        const glm::quat rotation = glm::quat(glm::vec3(mouseDelta.y, mouseDelta.x, 0.0f) * -kRotationFactor);
-        mLookAtOrientation = rotation * mLookAtOrientationAtRotationStart;
+        const glm::quat rotation1 = glm::quat(glm::vec3(0.0f, -kRotationFactor * mouseDelta.x, 0.0f));
+        const glm::quat rotation2 = glm::quat(glm::vec3(-kRotationFactor * mouseDelta.y, 0.0, 0.0f));
+        mLookAtOrientation = rotation2 * mLookAtOrientationAtRotationStart * rotation1;
         mLookAtOrientation = glm::normalize(mLookAtOrientation);
         handled = true;
     }
