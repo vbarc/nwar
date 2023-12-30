@@ -100,9 +100,12 @@ int main(void) {
     glBindVertexArray(vao);
     NGL_CHECK_ERRORS;
 
+    double startTime = glfwGetTime();
     std::vector<vec3> vertices;
     std::vector<uint32_t> indices;
     terrain.getData(&vertices, &indices);
+    double terrainGenerationTime = glfwGetTime() - startTime;
+    NGL_LOGI("Terrain generation time: %0.3fs", terrainGenerationTime);
 
     // Vertices
     GLuint vertexBuffer;
