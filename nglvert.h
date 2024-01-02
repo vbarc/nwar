@@ -6,6 +6,7 @@ static const char* gVertexShaderSrc = R"(
 layout (location=0) in vec3 pos;
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 mvp;
+    int is_wireframe_enabled;
 };
 
 void main() {

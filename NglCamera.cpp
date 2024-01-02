@@ -42,11 +42,7 @@ bool NglCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
         mMoveOrder.down = pressed;
         handled = true;
     }
-    if (key == GLFW_KEY_X) {
-        reset();
-        handled = true;
-    }
-    if (key == GLFW_KEY_SPACE) {
+    if (key == GLFW_KEY_0) {
         reset();
         handled = true;
     }

@@ -21,9 +21,11 @@ using glm::vec3;
 
 struct FrameUniform {
     mat4 mvp;
+    int32_t is_wireframe_enabled;
 };
 
 NglCamera gCamera(vec3(0.0f, 20.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+bool gIsWireFrameEnabled = false;
 
 int main(void) {
     NglTerrain terrain;
@@ -51,6 +53,10 @@ int main(void) {
     glfwSetKeyCallback(window, [](auto window, int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action != GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+            return;
+        }
+        if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
+            gIsWireFrameEnabled = !gIsWireFrameEnabled;
             return;
         }
         if (gCamera.onKeyEvent(key, scancode, action, mods)) {
@@ -151,6 +157,7 @@ int main(void) {
         mat4 v = gCamera.getViewMatrix();
         mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
         frameUniform.mvp = p * v;
+        frameUniform.is_wireframe_enabled = gIsWireFrameEnabled ? 1 : 0;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
         glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(indices)), GL_UNSIGNED_INT, 0);
