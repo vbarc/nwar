@@ -20,7 +20,8 @@ using glm::mat4;
 using glm::vec3;
 
 struct FrameUniform {
-    mat4 mvp;
+    mat4 model_view_matrix;
+    mat4 projection_matrix;
     int32_t is_wireframe_enabled;
 };
 
@@ -107,7 +108,7 @@ int main(void) {
     NGL_CHECK_ERRORS;
 
     double startTime = glfwGetTime();
-    std::vector<vec3> vertices;
+    std::vector<NglVertex> vertices;
     std::vector<uint32_t> indices;
     terrain.getData(&vertices, &indices);
     double terrainGenerationTime = glfwGetTime() - startTime;
@@ -117,16 +118,25 @@ int main(void) {
     GLuint vertexBuffer;
     glCreateBuffers(1, &vertexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(vertexBuffer, vertices.size() * sizeof(vec3), vertices.data(), 0);
+    glNamedBufferStorage(vertexBuffer, vertices.size() * sizeof(NglVertex), vertices.data(), 0);
     NGL_CHECK_ERRORS;
 
-    glVertexArrayAttribFormat(vao, 0 /*pos*/, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribFormat(vao, 0 /*position*/, 3, GL_FLOAT, GL_FALSE, 0);
     NGL_CHECK_ERRORS;
     glVertexArrayAttribBinding(vao, 0, 0);
     NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(vec3));
+    glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(NglVertex));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(vao, 0);
+    NGL_CHECK_ERRORS;
+
+    glVertexArrayAttribFormat(vao, 1 /*normal*/, 3, GL_FLOAT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(vao, 1, 1);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(vao, 1, vertexBuffer, offsetof(NglVertex, normal), sizeof(NglVertex));
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(vao, 1);
     NGL_CHECK_ERRORS;
 
     // Indices
@@ -154,9 +164,8 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         NGL_CHECK_ERRORS;
 
-        mat4 v = gCamera.getViewMatrix();
-        mat4 p = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
-        frameUniform.mvp = p * v;
+        frameUniform.model_view_matrix = gCamera.getModelViewMatrix();
+        frameUniform.projection_matrix = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
         frameUniform.is_wireframe_enabled = gIsWireFrameEnabled ? 1 : 0;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 

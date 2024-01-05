@@ -7,7 +7,8 @@ layout (location=0) in vec3 barycoords;
 layout (location=0) out vec4 color;
 
 layout (std140, binding = 0) uniform FrameUniform {
-    mat4 mvp;
+    mat4 model_view_matrix;
+    mat4 projection_matrix;
     int is_wireframe_enabled;
 };
 

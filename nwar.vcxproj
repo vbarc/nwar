@@ -173,6 +173,7 @@
     <ClInclude Include="NglProgram.h" />
     <ClInclude Include="NglTerrain.h" />
     <ClInclude Include="nglvert.h" />
+    <ClInclude Include="NglVertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

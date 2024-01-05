@@ -14,7 +14,7 @@ public:
     bool onMouseMotionEvent(GLFWwindow* window, double x, double y);
     void onNextFrame();
 
-    glm::mat4 getViewMatrix() const;
+    glm::mat4 getModelViewMatrix() const;
 
 private:
     void reset();

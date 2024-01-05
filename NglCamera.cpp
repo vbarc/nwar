@@ -133,7 +133,7 @@ void NglCamera::onNextFrame() {
     mPosition += mVelocity * timeDeltaSeconds;
 }
 
-glm::mat4 NglCamera::getViewMatrix() const {
+glm::mat4 NglCamera::getModelViewMatrix() const {
     const glm::mat4 t = glm::translate(glm::mat4(1.0f), -mPosition);
     const glm::mat4 r = glm::mat4_cast(mLookAtOrientation);
     return r * t;

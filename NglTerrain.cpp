@@ -19,6 +19,9 @@ constexpr float kMinY = 0.0f;
 constexpr float kMaxY = 5.0f;
 constexpr int kGranularity = 100;
 
+static int index(int i, int j);
+static vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int index2, int index3);
+
 NglTerrain::NglTerrain() {
     int n;
     mPixelData = stbi_load("terrain.png", &mPixelWidth, &mPixelDepth, &n, 1);
@@ -35,7 +38,7 @@ NglTerrain::~NglTerrain() {
     stbi_image_free(mPixelData);
 }
 
-void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32_t>* indicesOut) {
+void NglTerrain::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32_t>* indicesOut) {
     std::vector<std::vector<NglBicubicInterpolation>> interpolations;
     interpolations.resize(mPixelDepth - 2);
     for (int j = 1; j < mPixelDepth - 2; j++) {
@@ -69,20 +72,42 @@ void NglTerrain::getData(std::vector<glm::vec3>* verticesOut, std::vector<uint32
 
             float y = interpolations[basePixelZ][basePixelX].interpolate(normalizedX, normalizedZ);
 
-            verticesOut->push_back(vec3(x, y, z));
+            NglVertex vertex;
+            vertex.position = vec3(x, y, z);
+            verticesOut->push_back(vertex);
+        }
+    }
+
+    for (int j = 0; j <= kGranularity; j++) {
+        for (int i = 0; i <= kGranularity; i++) {
+            vec3 normal = vec3(0);
+            if (i > 0 && j > 0) {
+                normal += vertexNormal(*verticesOut, index(i, j), index(i - 1, j), index(i, j - 1));
+            }
+            if (i < kGranularity && j > 0) {
+                normal += vertexNormal(*verticesOut, index(i, j), index(i, j - 1), index(i + 1, j - 1));
+                normal += vertexNormal(*verticesOut, index(i, j), index(i + 1, j - 1), index(i + 1, j));
+            }
+            if (i < kGranularity && j < kGranularity) {
+                normal += vertexNormal(*verticesOut, index(i, j), index(i + 1, j), index(i, j + 1));
+            }
+            if (i > 0 && j < kGranularity) {
+                normal += vertexNormal(*verticesOut, index(i, j), index(i, j + 1), index(i - 1, j + 1));
+                normal += vertexNormal(*verticesOut, index(i, j), index(i - 1, j + 1), index(i - 1, j));
+            }
+            (*verticesOut)[index(i, j)].normal = glm::normalize(normal);
         }
     }
 
     indicesOut->reserve(kGranularity * kGranularity * 6);
     for (int j = 0; j < kGranularity; j++) {
         for (int i = 0; i < kGranularity; i++) {
-            uint32_t baseIndex = j * (kGranularity + 1) + i;
-            indicesOut->push_back(baseIndex);
-            indicesOut->push_back(baseIndex + 1);
-            indicesOut->push_back(baseIndex + kGranularity + 1);
-            indicesOut->push_back(baseIndex + 1);
-            indicesOut->push_back(baseIndex + kGranularity + 2);
-            indicesOut->push_back(baseIndex + kGranularity + 1);
+            indicesOut->push_back(index(i, j));
+            indicesOut->push_back(index(i + 1, j));
+            indicesOut->push_back(index(i, j + 1));
+            indicesOut->push_back(index(i + 1, j));
+            indicesOut->push_back(index(i + 1, j + 1));
+            indicesOut->push_back(index(i, j + 1));
         }
     }
 }
@@ -93,4 +118,15 @@ float NglTerrain::sample(int pixelX, int pixelZ) {
     NGL_ASSERT(pixelZ >= 0);
     NGL_ASSERT(pixelZ < mPixelDepth);
     return kMinY + (kMaxY - kMinY) / 255 * mPixelData[pixelZ * mPixelWidth + pixelX];
+}
+
+int index(int i, int j) {
+    return j * (kGranularity + 1) + i;
+}
+
+vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int index2, int index3) {
+    vec3 vertex1 = vertices[index1].position;
+    vec3 vertex2 = vertices[index2].position;
+    vec3 vertex3 = vertices[index3].position;
+    return glm::normalize(glm::cross(vertex3 - vertex1, vertex2 - vertex1));
 }

@@ -81,5 +81,8 @@
     <ClInclude Include="NglBicubicInterpolation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NglVertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
