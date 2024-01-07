@@ -1,42 +1,39 @@
 #include "NglBicubicInterpolation.h"
 
-#include <Eigen/Dense>
+// The math is from https://en.wikipedia.org/wiki/Bicubic_interpolation.
 
-using EVector = Eigen::Vector<float, 16>;
-using EMatrix = Eigen::Matrix<float, 16, 16>;
+const auto kL = glm::mat4(  //
+        1, 0, -3, 2,        //
+        0, 0, 3, -2,        //
+        0, 1, -2, 1,        //
+        0, 0, -1, 1         //
+);
 
-const auto kSolver =
-        EMatrix{
-                {1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1, 1, -1, 1},  //
-                {1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0},        //
-                {1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1},  //
-                {1, 2, 4, 8, -1, -2, -4, -8, 1, 2, 4, 8, -1, -2, -4, -8},  //
-                //
-                {1, -1, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  //
-                {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    //
-                {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    //
-                {1, 2, 4, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},    //
-                //
-                {1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1, 1, -1},  //
-                {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},          //
-                {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},          //
-                {1, 2, 4, 8, 1, 2, 4, 8, 1, 2, 4, 8, 1, 2, 4, 8},          //
-                //
-                {1, -1, 1, -1, 2, -2, 2, -2, 4, -4, 4, -4, 8, -8, 8, -8},  //
-                {1, 0, 0, 0, 2, 0, 0, 0, 4, 0, 0, 0, 8, 0, 0, 0},          //
-                {1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 8, 8, 8, 8},          //
-                {1, 2, 4, 8, 2, 4, 8, 16, 4, 8, 16, 32, 8, 16, 32, 64},    //
-        }
-                .colPivHouseholderQr();
+const auto kR = glm::transpose(kL);
 
-NglBicubicInterpolation::NglBicubicInterpolation() : mA{0} {}
+class F {
+public:
+    F(const float* samples) : mSamples(samples) {}
 
-NglBicubicInterpolation::NglBicubicInterpolation(float samples[16]) {
-    EVector f{samples};
-    EVector a = kSolver.solve(f);
-    for (int i = 0; i < 16; i++) {
-        mA[i] = a(i);
+    const float operator()(int x, int y) {
+        return mSamples[(y + 1) * 4 + (x + 1)];
     }
+
+private:
+    const float* mSamples;
+};
+
+NglBicubicInterpolation::NglBicubicInterpolation() {}
+
+NglBicubicInterpolation::NglBicubicInterpolation(int column, int row, float samples[16]) : mColumn(column), mRow(row) {
+    F f(samples);
+    glm::mat4 m = glm::mat4(                                                                                          //
+            f(0, 0), f(1, 0), (f(1, 0) - f(-1, 0)) / 2, (f(2, 0) - f(0, 0)) / 2,                                      //
+            f(0, 1), f(1, 1), (f(1, 1) - f(-1, 1)) / 2, (f(2, 1) - f(0, 1)) / 2,                                      //
+            (f(0, 1) - f(0, -1)) / 2, (f(1, 1) - f(1, -1)) / 2, (f(1, 1) - f(-1, -1)) / 4, (f(2, 1) - f(0, -1)) / 4,  //
+            (f(0, 2) - f(0, 0)) / 2, (f(1, 2) - f(1, 0)) / 2, (f(1, 2) - f(-1, 0)) / 4, (f(2, 2) - f(0, 0)) / 4       //
+    );
+    mA = kL * m * kR;
 }
 
 float NglBicubicInterpolation::interpolate(float x, float y) {
@@ -44,8 +41,5 @@ float NglBicubicInterpolation::interpolate(float x, float y) {
     float x3 = x2 * x;
     float y2 = y * y;
     float y3 = y2 * y;
-    return mA[0] + mA[1] * x + mA[2] * x2 + mA[3] * x3                          //
-           + mA[4] * y + mA[5] * y * x + mA[6] * y * x2 + mA[7] * y * x3        //
-           + mA[8] * y2 + mA[9] * y2 * x + mA[10] * y2 * x2 + mA[11] * y2 * x3  //
-           + mA[12] * y3 + mA[13] * y3 * x + mA[14] * y3 * x2 + mA[15] * y3 * x3;
+    return glm::dot(glm::vec4(1, x, x2, x3) * mA, glm::vec4(1, y, y2, y3));
 }

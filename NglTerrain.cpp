@@ -43,14 +43,14 @@ void NglTerrain::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32
     interpolations.resize(mPixelDepth - 2);
     for (int j = 1; j < mPixelDepth - 2; j++) {
         interpolations[j].resize(mPixelWidth - 2);
-        for (int i = 1; i < mPixelDepth - 2; i++) {
+        for (int i = 1; i < mPixelWidth - 2; i++) {
             float f[16] = {
                     sample(i - 1, j - 1), sample(i + 0, j - 1), sample(i + 1, j - 1), sample(i + 2, j - 1),
                     sample(i - 1, j + 0), sample(i + 0, j + 0), sample(i + 1, j + 0), sample(i + 2, j + 0),
                     sample(i - 1, j + 1), sample(i + 0, j + 1), sample(i + 1, j + 1), sample(i + 2, j + 1),
-                    sample(i - 1, j + 2), sample(i + 0, j + 2), sample(j + 1, j + 2), sample(i + 2, j + 2),
+                    sample(i - 1, j + 2), sample(i + 0, j + 2), sample(i + 1, j + 2), sample(i + 2, j + 2),
             };
-            interpolations[j][i] = NglBicubicInterpolation(f);
+            interpolations[j][i] = NglBicubicInterpolation(i, j, f);
         }
     }
 

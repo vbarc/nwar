@@ -13,7 +13,7 @@ layout (std140, binding = 0) uniform FrameUniform {
     int is_wireframe_enabled;
 };
 
-const vec3 light_position = vec3(-100, 100, 100);
+const vec3 light_position = vec3(-1000, 1000, 1000);
 const vec3 ambient = vec3(0.1, 0.1, 0.1);
 const vec3 diffuse_albedo = vec3(0, 0.7, 0);
 const vec3 specular_albedo = vec3(0.1);
