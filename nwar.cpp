@@ -1,6 +1,9 @@
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <assimp/Importer.hpp>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 #include <vector>
@@ -8,6 +11,8 @@
 #include "NglCamera.h"
 #include "NglProgram.h"
 #include "NglTerrain.h"
+#include "nglassert.h"
+#include "nglassimp.h"
 #include "ngldbg.h"
 #include "nglerr.h"
 #include "nglfrag.h"
@@ -30,6 +35,39 @@ bool gIsWireFrameEnabled = false;
 
 int main(void) {
     NglTerrain terrain;
+
+    Assimp::Importer importer;
+
+    const char* sceneFileName = "simple-man.glb";
+    const aiScene* scene =
+            importer.ReadFile(sceneFileName, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
+                                                     aiProcess_JoinIdenticalVertices);
+    if (scene) {
+        NGL_LOGI("%s loaded successfully", sceneFileName);
+    } else {
+        NGL_LOGE("Error loading %s: %s", sceneFileName, importer.GetErrorString());
+        abort();
+    }
+
+    std::vector<NglVertex> soldierVertices;
+    std::vector<uint32_t> soldierIndices;
+    for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
+        const aiMesh* mesh = scene->mMeshes[m];
+        for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
+            NglVertex vertex;
+            vertex.position = ai2glm(mesh->mVertices[v]);
+            vertex.position += glm::vec3(0, 10, 0);  // Move up
+            vertex.normal = ai2glm(mesh->mNormals[v]);
+            soldierVertices.push_back(vertex);
+        }
+        for (unsigned int f = 0; f < mesh->mNumFaces; f++) {
+            const aiFace& face = mesh->mFaces[f];
+            NGL_ASSERT(face.mNumIndices == 3);
+            soldierIndices.push_back(face.mIndices[0]);
+            soldierIndices.push_back(face.mIndices[1]);
+            soldierIndices.push_back(face.mIndices[2]);
+        }
+    }
 
     glfwSetErrorCallback(
             [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
@@ -100,52 +138,100 @@ int main(void) {
     glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
     NGL_CHECK_ERRORS;
 
+    // Terrain
+
     // VAO
-    GLuint vao;
-    glCreateVertexArrays(1, &vao);
+    GLuint terrainVao;
+    glCreateVertexArrays(1, &terrainVao);
     NGL_CHECK_ERRORS;
-    glBindVertexArray(vao);
+    glBindVertexArray(terrainVao);
     NGL_CHECK_ERRORS;
 
     double startTime = glfwGetTime();
-    std::vector<NglVertex> vertices;
-    std::vector<uint32_t> indices;
-    terrain.getData(&vertices, &indices);
+    std::vector<NglVertex> terrainVertices;
+    std::vector<uint32_t> terrainIndices;
+    terrain.getData(&terrainVertices, &terrainIndices);
     double terrainGenerationTime = glfwGetTime() - startTime;
     NGL_LOGI("Terrain generation time: %0.3fs", terrainGenerationTime);
 
     // Vertices
-    GLuint vertexBuffer;
-    glCreateBuffers(1, &vertexBuffer);
+    GLuint terrainVertexBuffer;
+    glCreateBuffers(1, &terrainVertexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(vertexBuffer, vertices.size() * sizeof(NglVertex), vertices.data(), 0);
-    NGL_CHECK_ERRORS;
-
-    glVertexArrayAttribFormat(vao, 0 /*position*/, 3, GL_FLOAT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(vao, 0, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(vao, 0, vertexBuffer, 0, sizeof(NglVertex));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(vao, 0);
+    glNamedBufferStorage(terrainVertexBuffer, terrainVertices.size() * sizeof(NglVertex), terrainVertices.data(), 0);
     NGL_CHECK_ERRORS;
 
-    glVertexArrayAttribFormat(vao, 1 /*normal*/, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribFormat(terrainVao, 0 /*position*/, 3, GL_FLOAT, GL_FALSE, 0);
     NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(vao, 1, 1);
+    glVertexArrayAttribBinding(terrainVao, 0, 0);
     NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(vao, 1, vertexBuffer, offsetof(NglVertex, normal), sizeof(NglVertex));
+    glVertexArrayVertexBuffer(terrainVao, 0, terrainVertexBuffer, 0, sizeof(NglVertex));
     NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(vao, 1);
+    glEnableVertexArrayAttrib(terrainVao, 0);
+    NGL_CHECK_ERRORS;
+
+    glVertexArrayAttribFormat(terrainVao, 1 /*normal*/, 3, GL_FLOAT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(terrainVao, 1, 1);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(terrainVao, 1, terrainVertexBuffer, offsetof(NglVertex, normal), sizeof(NglVertex));
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(terrainVao, 1);
     NGL_CHECK_ERRORS;
 
     // Indices
-    GLuint indexBuffer;
-    glCreateBuffers(1, &indexBuffer);
+    GLuint terrainIndexBuffer;
+    glCreateBuffers(1, &terrainIndexBuffer);
     NGL_CHECK_ERRORS;
-    glNamedBufferStorage(indexBuffer, indices.size() * sizeof(uint32_t), indices.data(), 0);
+    glNamedBufferStorage(terrainIndexBuffer, terrainIndices.size() * sizeof(uint32_t), terrainIndices.data(), 0);
     NGL_CHECK_ERRORS;
-    glVertexArrayElementBuffer(vao, indexBuffer);
+    glVertexArrayElementBuffer(terrainVao, terrainIndexBuffer);
+
+    glBindVertexArray(0);
+
+    // Soldier
+
+    // VAO
+    GLuint soldierVao;
+    glCreateVertexArrays(1, &soldierVao);
+    NGL_CHECK_ERRORS;
+    glBindVertexArray(soldierVao);
+    NGL_CHECK_ERRORS;
+
+    // Vertices
+    GLuint soldierVertexBuffer;
+    glCreateBuffers(1, &soldierVertexBuffer);
+    NGL_CHECK_ERRORS;
+    glNamedBufferStorage(soldierVertexBuffer, soldierVertices.size() * sizeof(NglVertex), soldierVertices.data(), 0);
+    NGL_CHECK_ERRORS;
+
+    glVertexArrayAttribFormat(soldierVao, 0 /*position*/, 3, GL_FLOAT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(soldierVao, 0, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(soldierVao, 0, soldierVertexBuffer, 0, sizeof(NglVertex));
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(soldierVao, 0);
+    NGL_CHECK_ERRORS;
+
+    glVertexArrayAttribFormat(soldierVao, 1 /*normal*/, 3, GL_FLOAT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(soldierVao, 1, 1);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(soldierVao, 1, soldierVertexBuffer, offsetof(NglVertex, normal), sizeof(NglVertex));
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(soldierVao, 1);
+    NGL_CHECK_ERRORS;
+
+    // Indices
+    GLuint soldierIndexBuffer;
+    glCreateBuffers(1, &soldierIndexBuffer);
+    NGL_CHECK_ERRORS;
+    glNamedBufferStorage(soldierIndexBuffer, soldierIndices.size() * sizeof(uint32_t), soldierIndices.data(), 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayElementBuffer(soldierVao, soldierIndexBuffer);
+
+    glBindVertexArray(0);
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
@@ -169,23 +255,31 @@ int main(void) {
         frameUniform.is_wireframe_enabled = gIsWireFrameEnabled ? 1 : 0;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
-        glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(indices)), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(terrainVao);
+        glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(terrainIndices)), GL_UNSIGNED_INT, 0);
+        NGL_CHECK_ERRORS;
+
+        glBindVertexArray(soldierVao);
+        glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(soldierIndices)), GL_UNSIGNED_INT, 0);
         NGL_CHECK_ERRORS;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteBuffers(1, &indexBuffer);
-    glDeleteBuffers(1, &vertexBuffer);
-    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &soldierIndexBuffer);
+    glDeleteBuffers(1, &soldierVertexBuffer);
+    glDeleteVertexArrays(1, &soldierVao);
+
+    glDeleteBuffers(1, &terrainIndexBuffer);
+    glDeleteBuffers(1, &terrainVertexBuffer);
+    glDeleteVertexArrays(1, &terrainVao);
+
     glDeleteBuffers(1, &frameUniformBuffer);
 
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Terrain
-    // TODO: Skybox
     // TODO: Blender model
     // TODO: Nice rendering (lighting, grass material, cloth material?)
     // TODO: Animation
