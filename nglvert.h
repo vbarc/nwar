@@ -10,8 +10,8 @@ layout (location=3) in int vsin_type;
 layout (location=0) out vec4 vsout_color;
 layout (location=1) out vec2 vsout_uv;
 layout (location=2) out int vsout_type;
-layout (location=3) out vec4 vsout_specular_color;
-layout (location=4) out float vsout_diffuse_factor;
+layout (location=3) out vec3 vsout_diffuse_factor;
+layout (location=4) out vec3 vsout_specular_component;
 
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
@@ -20,9 +20,9 @@ layout (std140, binding = 0) uniform FrameUniform {
 };
 
 const vec3 light_position = vec3(-1100, 1200, 1000);
-const vec3 ambient = vec3(0.1, 0.1, 0.1);
-const vec3 diffuse_albedo = vec3(0, 0.7, 0);
-const vec3 specular_albedo = vec3(0.1);
+const vec3 ambient = vec3(0.1);
+const vec3 diffuse_k = vec3(0, 0.7, 0);
+const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
 
 void main() {
@@ -39,15 +39,15 @@ void main() {
 
     vec3 reflection_vector_in_view = reflect(-light_vector_in_view, normal_in_view);
 
-    float diffuse_factor = max(dot(normal_in_view, light_vector_in_view), 0);
-    vec3 diffuse = diffuse_factor * diffuse_albedo;
-    vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_albedo;
+    vec3 diffuse_factor = vec3(max(dot(normal_in_view, light_vector_in_view), 0));
+    vec3 diffuse = diffuse_factor * diffuse_k;
+    vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_k;
 
     vsout_color = vec4(ambient + diffuse + specular, 1);
     vsout_uv = vsin_uv;
     vsout_type = vsin_type;
-    vsout_specular_color = vec4(specular, 1);
     vsout_diffuse_factor = diffuse_factor;
+    vsout_specular_component = specular;
 
     gl_Position = projection_matrix * position_in_view;
 }

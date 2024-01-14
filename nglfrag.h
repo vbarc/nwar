@@ -6,8 +6,8 @@ static const char* gFragmentShaderSrc = R"(
 layout (location=0) in vec4 gsout_color;
 layout (location=1) in vec2 gsout_uv;
 layout (location=2) flat in int gsout_type;
-layout (location=3) in vec4 gsout_specular_color;
-layout (location=4) in float gsout_diffuse_factor;
+layout (location=3) in vec3 gsout_diffuse_factor;
+layout (location=4) in vec3 gsout_specular_component;
 layout (location=5) in vec3 gsout_barycoords;
 layout (location=0) out vec4 fsout_color;
 
@@ -19,7 +19,7 @@ layout (std140, binding = 0) uniform FrameUniform {
 
 uniform sampler2D texture0;
 
-const float ambient_factor = 0.4;
+const vec3 ambient_factor = vec3(0.4);
 
 void main() {
     vec4 color;
@@ -27,7 +27,7 @@ void main() {
         color = gsout_color;
     } else {
         color = texture(texture0, gsout_uv);
-        color = color * (gsout_diffuse_factor + ambient_factor) + gsout_specular_color;
+        color = color * vec4(gsout_diffuse_factor + ambient_factor, 1) + vec4(gsout_specular_component, 1);
     }
     if (is_wireframe_enabled != 0) {
         vec3 edge_factor = smoothstep(vec3(0.0), fwidth(gsout_barycoords), gsout_barycoords);
