@@ -3,15 +3,18 @@
 static const char* gVertexShaderSrc = R"(
 #version 460 core
 
-layout (location = 0) in vec3 vsin_position;
-layout (location = 1) in vec3 vsin_normal;
-layout (location = 2) in vec2 vsin_uv;
-layout (location = 3) in int vsin_type;
-layout (location = 0) out vec4 vsout_color;
-layout (location = 1) out vec2 vsout_uv;
-layout (location = 2) out int vsout_type;
-layout (location = 3) out vec3 vsout_diffuse_factor;
-layout (location = 4) out vec3 vsout_specular_component;
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec2 in_uv;
+layout (location = 3) in int in_type;
+
+out VS_OUT {
+    vec4 color;
+    vec2 uv;
+    int type;
+    vec3 diffuse_factor;
+    vec3 specular_component;
+} vs_out;
 
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
@@ -26,10 +29,10 @@ const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
 
 void main() {
-    vec3 light_vector = normalize(light_position - vsin_position);
+    vec3 light_vector = normalize(light_position - in_position);
 
-    vec4 position_in_view = model_view_matrix * vec4(vsin_position, 1);
-    vec3 normal_in_view = mat3(model_view_matrix) * vsin_normal;
+    vec4 position_in_view = model_view_matrix * vec4(in_position, 1);
+    vec3 normal_in_view = mat3(model_view_matrix) * in_normal;
     vec3 light_vector_in_view = mat3(model_view_matrix) * light_vector;
     vec3 view_vector_in_view = -position_in_view.xyz;
 
@@ -43,11 +46,11 @@ void main() {
     vec3 diffuse = diffuse_factor * diffuse_k;
     vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_k;
 
-    vsout_color = vec4(ambient + diffuse + specular, 1);
-    vsout_uv = vsin_uv;
-    vsout_type = vsin_type;
-    vsout_diffuse_factor = diffuse_factor;
-    vsout_specular_component = specular;
+    vs_out.color = vec4(ambient + diffuse + specular, 1);
+    vs_out.uv = in_uv;
+    vs_out.type = in_type;
+    vs_out.diffuse_factor = diffuse_factor;
+    vs_out.specular_component = specular;
 
     gl_Position = projection_matrix * position_in_view;
 }

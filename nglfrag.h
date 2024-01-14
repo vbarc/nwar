@@ -3,13 +3,16 @@
 static const char* gFragmentShaderSrc = R"(
 #version 460 core
 
-layout (location = 0) in vec4 gsout_color;
-layout (location = 1) in vec2 gsout_uv;
-layout (location = 2) flat in int gsout_type;
-layout (location = 3) in vec3 gsout_diffuse_factor;
-layout (location = 4) in vec3 gsout_specular_component;
-layout (location = 5) in vec3 gsout_barycoords;
-layout (location = 0) out vec4 fsout_color;
+in GS_OUT {
+    vec4 color;
+    vec2 uv;
+    int type;
+    vec3 diffuse_factor;
+    vec3 specular_component;
+    vec3 barycoords;
+} fs_in;
+
+layout (location = 0) out vec4 out_color;
 
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
@@ -23,18 +26,18 @@ const vec3 ambient_factor = vec3(0.4);
 
 void main() {
     vec4 color;
-    if (gsout_type == 0) {
-        color = gsout_color;
+    if (fs_in.type == 0) {
+        color = fs_in.color;
     } else {
-        color = texture(texture0, gsout_uv);
-        color = color * vec4(gsout_diffuse_factor + ambient_factor, 1) + vec4(gsout_specular_component, 1);
+        color = texture(texture0, fs_in.uv);
+        color = color * vec4(fs_in.diffuse_factor + ambient_factor, 1) + vec4(fs_in.specular_component, 1);
     }
     if (is_wireframe_enabled != 0) {
-        vec3 edge_factor = smoothstep(vec3(0.0), fwidth(gsout_barycoords), gsout_barycoords);
+        vec3 edge_factor = smoothstep(vec3(0.0), fwidth(fs_in.barycoords), fs_in.barycoords);
         float min_edge_factor = min(min(edge_factor.x, edge_factor.y), edge_factor.z);
-        fsout_color = mix(vec4(color.rgb * 0.2, 1.0), color, min_edge_factor);
+        out_color = mix(vec4(color.rgb * 0.2, 1.0), color, min_edge_factor);
     } else {
-        fsout_color = color;
+        out_color = color;
     }
 }
 )";
