@@ -19,7 +19,7 @@ layout (std140, binding = 0) uniform FrameUniform {
 
 uniform sampler2D texture0;
 
-const float ambient_factor = 0.3;
+const float ambient_factor = 0.4;
 
 void main() {
     vec4 color;
