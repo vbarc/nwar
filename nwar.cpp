@@ -372,7 +372,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: More ambient
     // TODO: Cleanup shader code
     // TODO: Input blocks
     // TODO: Convert terrain to textures
