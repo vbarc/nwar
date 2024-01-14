@@ -372,8 +372,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Cleanup shader code
-    // TODO: Input blocks
     // TODO: Convert terrain to textures
     // TODO: Layers
     // TODO: Army of soldiers
