@@ -5,11 +5,13 @@ static const char* gVertexShaderSrc = R"(
 
 layout (location=0) in vec3 vsin_position;
 layout (location=1) in vec3 vsin_normal;
-layout (location=2) in int vsin_type;
+layout (location=2) in vec2 vsin_uv;
+layout (location=3) in int vsin_type;
 layout (location=0) out vec4 vsout_color;
-layout (location=1) out int vsout_type;
-layout (location=2) out vec4 vsout_ambient_plus_specular_color;
-layout (location=3) out float vsout_diffuse_factor;
+layout (location=1) out vec2 vsout_uv;
+layout (location=2) out int vsout_type;
+layout (location=3) out vec4 vsout_ambient_plus_specular_color;
+layout (location=4) out float vsout_diffuse_factor;
 
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
@@ -42,6 +44,7 @@ void main() {
     vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_albedo;
 
     vsout_color = vec4(ambient + diffuse + specular, 1);
+    vsout_uv = vsin_uv;
     vsout_type = vsin_type;
     vsout_ambient_plus_specular_color = vec4(ambient + specular, 1);
     vsout_diffuse_factor = diffuse_factor;

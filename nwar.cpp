@@ -54,11 +54,13 @@ int main(void) {
     std::vector<uint32_t> soldierIndices;
     for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
         const aiMesh* mesh = scene->mMeshes[m];
+        NGL_ASSERT(mesh->HasTextureCoords(0));
         for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
             NglVertex vertex;
             vertex.position = ai2glm(mesh->mVertices[v]);
             vertex.position += glm::vec3(0, 10, 0);  // Move up
             vertex.normal = ai2glm(mesh->mNormals[v]);
+            vertex.uv = ai2glmvec2(mesh->mTextureCoords[0][v]);
             vertex.type = 1;
             soldierVertices.push_back(vertex);
         }
@@ -181,13 +183,22 @@ int main(void) {
     glEnableVertexArrayAttrib(terrainVao, 1);
     NGL_CHECK_ERRORS;
 
-    glVertexArrayAttribFormat(terrainVao, 2 /*type*/, 1, GL_INT, GL_FALSE, 0);
+    glVertexArrayAttribFormat(terrainVao, 2 /*uv*/, 2, GL_FLOAT, GL_FALSE, 0);
     NGL_CHECK_ERRORS;
     glVertexArrayAttribBinding(terrainVao, 2, 2);
     NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(terrainVao, 2, terrainVertexBuffer, offsetof(NglVertex, type), sizeof(NglVertex));
+    glVertexArrayVertexBuffer(terrainVao, 2, terrainVertexBuffer, offsetof(NglVertex, uv), sizeof(NglVertex));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(terrainVao, 2);
+    NGL_CHECK_ERRORS;
+
+    glVertexArrayAttribFormat(terrainVao, 3 /*type*/, 1, GL_INT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(terrainVao, 3, 3);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(terrainVao, 3, terrainVertexBuffer, offsetof(NglVertex, type), sizeof(NglVertex));
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(terrainVao, 3);
     NGL_CHECK_ERRORS;
 
     // Indices
@@ -197,8 +208,10 @@ int main(void) {
     glNamedBufferStorage(terrainIndexBuffer, terrainIndices.size() * sizeof(uint32_t), terrainIndices.data(), 0);
     NGL_CHECK_ERRORS;
     glVertexArrayElementBuffer(terrainVao, terrainIndexBuffer);
+    NGL_CHECK_ERRORS;
 
     glBindVertexArray(0);
+    NGL_CHECK_ERRORS;
 
     // Soldier
 
@@ -234,13 +247,22 @@ int main(void) {
     glEnableVertexArrayAttrib(soldierVao, 1);
     NGL_CHECK_ERRORS;
 
-    glVertexArrayAttribFormat(soldierVao, 2 /*type*/, 1, GL_INT, GL_FALSE, 0);
+    glVertexArrayAttribFormat(soldierVao, 2 /*uv*/, 2, GL_FLOAT, GL_FALSE, 0);
     NGL_CHECK_ERRORS;
     glVertexArrayAttribBinding(soldierVao, 2, 2);
     NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(soldierVao, 2, soldierVertexBuffer, offsetof(NglVertex, type), sizeof(NglVertex));
+    glVertexArrayVertexBuffer(soldierVao, 2, soldierVertexBuffer, offsetof(NglVertex, uv), sizeof(NglVertex));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(soldierVao, 2);
+    NGL_CHECK_ERRORS;
+
+    glVertexArrayAttribFormat(soldierVao, 3 /*type*/, 1, GL_INT, GL_FALSE, 0);
+    NGL_CHECK_ERRORS;
+    glVertexArrayAttribBinding(soldierVao, 3, 3);
+    NGL_CHECK_ERRORS;
+    glVertexArrayVertexBuffer(soldierVao, 3, soldierVertexBuffer, offsetof(NglVertex, type), sizeof(NglVertex));
+    NGL_CHECK_ERRORS;
+    glEnableVertexArrayAttrib(soldierVao, 3);
     NGL_CHECK_ERRORS;
 
     // Indices
@@ -250,8 +272,10 @@ int main(void) {
     glNamedBufferStorage(soldierIndexBuffer, soldierIndices.size() * sizeof(uint32_t), soldierIndices.data(), 0);
     NGL_CHECK_ERRORS;
     glVertexArrayElementBuffer(soldierVao, soldierIndexBuffer);
+    NGL_CHECK_ERRORS;
 
-    // Texture
+    // Textures
+    std::vector<GLuint> textures;
     for (unsigned int m = 0; m < scene->mNumMaterials; m++) {
         const aiMaterial* material = scene->mMaterials[m];
         NGL_LOGI("Material: %s", material->GetName().C_Str());
@@ -262,21 +286,43 @@ int main(void) {
         aiString path;
         NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
         NGL_LOGI("Diffuse texture 0 path: %s", path.C_Str());
-        const aiTexture* texture = scene->GetEmbeddedTexture(path.C_Str());
-        NGL_LOGI("Diffuse texture 0 height: %u", texture->mHeight);
-        NGL_LOGI("Diffuse texture 0 width: %u", texture->mWidth);
-        NGL_ASSERT(texture->mHeight == 0);
-        NGL_ASSERT(texture->mWidth > 0);
+        const aiTexture* aiTexture = scene->GetEmbeddedTexture(path.C_Str());
+        NGL_LOGI("Diffuse texture 0 height: %u", aiTexture->mHeight);
+        NGL_LOGI("Diffuse texture 0 width: %u", aiTexture->mWidth);
+        NGL_ASSERT(aiTexture->mHeight == 0);
+        NGL_ASSERT(aiTexture->mWidth > 0);
 
         int width;
         int height;
         int n;
-        unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData),
-                                                      texture->mWidth, &width, &height, &n, STBI_rgb);
+        unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(aiTexture->pcData),
+                                                      aiTexture->mWidth, &width, &height, &n, STBI_rgb);
+
+        GLuint texture;
+        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        NGL_CHECK_ERRORS;
+        glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 0);
+        NGL_CHECK_ERRORS;
+        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        NGL_CHECK_ERRORS;
+        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        NGL_CHECK_ERRORS;
+        glTextureStorage2D(texture, 1, GL_RGB8, width, height);
+        NGL_CHECK_ERRORS;
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        NGL_CHECK_ERRORS;
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        NGL_CHECK_ERRORS;
+        glBindTextures(0, 1, &texture);
+        NGL_CHECK_ERRORS;
+        textures.push_back(texture);
+
         stbi_image_free(pixels);
+        break;
     }
 
     glBindVertexArray(0);
+    NGL_CHECK_ERRORS;
 
     glClearColor(0.4f, 0.6f, 1.0f, 1.0f);
     NGL_CHECK_ERRORS;
@@ -312,6 +358,7 @@ int main(void) {
         glfwPollEvents();
     }
 
+    glDeleteTextures(static_cast<GLsizei>(textures.size()), textures.data());
     glDeleteBuffers(1, &soldierIndexBuffer);
     glDeleteBuffers(1, &soldierVertexBuffer);
     glDeleteVertexArrays(1, &soldierVao);
@@ -325,7 +372,14 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Blender model
+    // TODO: More ambient
+    // TODO: Cleanup shader code
+    // TODO: Input blocks
+    // TODO: Convert terrain to textures
+    // TODO: Layers
+    // TODO: Army of soldiers
+    // TODO: Snapping to terrain
+    // TODO: Movement
     // TODO: Nice rendering (lighting, grass material, cloth material?)
     // TODO: Animation
     return 0;
