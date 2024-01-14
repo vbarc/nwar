@@ -24,7 +24,7 @@ static vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int
 
 NglTerrain::NglTerrain() {
     int n;
-    mPixelData = stbi_load("terrain.png", &mPixelWidth, &mPixelDepth, &n, 1);
+    mPixelData = stbi_load("terrain.png", &mPixelWidth, &mPixelDepth, &n, STBI_grey);
     NGL_LOGI("Terrain loaded, data: %p, width: %d, depth: %d, n: %d", mPixelData, mPixelWidth, mPixelDepth, n);
     NGL_ASSERT(mPixelData);
     for (int r = 0; r < mPixelDepth; r++) {

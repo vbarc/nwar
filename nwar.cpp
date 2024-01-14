@@ -1,5 +1,6 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <stb_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -230,6 +231,31 @@ int main(void) {
     glNamedBufferStorage(soldierIndexBuffer, soldierIndices.size() * sizeof(uint32_t), soldierIndices.data(), 0);
     NGL_CHECK_ERRORS;
     glVertexArrayElementBuffer(soldierVao, soldierIndexBuffer);
+
+    // Texture
+    for (unsigned int m = 0; m < scene->mNumMaterials; m++) {
+        const aiMaterial* material = scene->mMaterials[m];
+        NGL_LOGI("Material: %s", material->GetName().C_Str());
+        if (material->GetName().length == 0) {
+            continue;
+        }
+        NGL_LOGI("Diffuse texture count: %u", material->GetTextureCount(aiTextureType_DIFFUSE));
+        aiString path;
+        NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
+        NGL_LOGI("Diffuse texture 0 path: %s", path.C_Str());
+        const aiTexture* texture = scene->GetEmbeddedTexture(path.C_Str());
+        NGL_LOGI("Diffuse texture 0 height: %u", texture->mHeight);
+        NGL_LOGI("Diffuse texture 0 width: %u", texture->mWidth);
+        NGL_ASSERT(texture->mHeight == 0);
+        NGL_ASSERT(texture->mWidth > 0);
+
+        int width;
+        int height;
+        int n;
+        unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(texture->pcData),
+                                                      texture->mWidth, &width, &height, &n, STBI_rgb);
+        stbi_image_free(pixels);
+    }
 
     glBindVertexArray(0);
 
