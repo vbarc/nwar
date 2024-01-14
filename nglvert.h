@@ -5,7 +5,11 @@ static const char* gVertexShaderSrc = R"(
 
 layout (location=0) in vec3 vsin_position;
 layout (location=1) in vec3 vsin_normal;
+layout (location=2) in int vsin_type;
 layout (location=0) out vec4 vsout_color;
+layout (location=1) out int vsout_type;
+layout (location=2) out vec4 vsout_ambient_plus_specular_color;
+layout (location=3) out float vsout_diffuse_factor;
 
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
@@ -13,7 +17,7 @@ layout (std140, binding = 0) uniform FrameUniform {
     int is_wireframe_enabled;
 };
 
-const vec3 light_position = vec3(-1000, 1000, 1000);
+const vec3 light_position = vec3(-1100, 1000, 1000);
 const vec3 ambient = vec3(0.1, 0.1, 0.1);
 const vec3 diffuse_albedo = vec3(0, 0.7, 0);
 const vec3 specular_albedo = vec3(0.1);
@@ -33,10 +37,14 @@ void main() {
 
     vec3 reflection_vector_in_view = reflect(-light_vector_in_view, normal_in_view);
 
-    vec3 diffuse = max(dot(normal_in_view, light_vector_in_view), 0) * diffuse_albedo;
+    float diffuse_factor = max(dot(normal_in_view, light_vector_in_view), 0);
+    vec3 diffuse = diffuse_factor * diffuse_albedo;
     vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_albedo;
 
     vsout_color = vec4(ambient + diffuse + specular, 1);
+    vsout_type = vsin_type;
+    vsout_ambient_plus_specular_color = vec4(ambient + specular, 1);
+    vsout_diffuse_factor = diffuse_factor;
 
     gl_Position = projection_matrix * position_in_view;
 }
