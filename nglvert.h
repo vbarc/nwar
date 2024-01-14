@@ -3,15 +3,15 @@
 static const char* gVertexShaderSrc = R"(
 #version 460 core
 
-layout (location=0) in vec3 vsin_position;
-layout (location=1) in vec3 vsin_normal;
-layout (location=2) in vec2 vsin_uv;
-layout (location=3) in int vsin_type;
-layout (location=0) out vec4 vsout_color;
-layout (location=1) out vec2 vsout_uv;
-layout (location=2) out int vsout_type;
-layout (location=3) out vec3 vsout_diffuse_factor;
-layout (location=4) out vec3 vsout_specular_component;
+layout (location = 0) in vec3 vsin_position;
+layout (location = 1) in vec3 vsin_normal;
+layout (location = 2) in vec2 vsin_uv;
+layout (location = 3) in int vsin_type;
+layout (location = 0) out vec4 vsout_color;
+layout (location = 1) out vec2 vsout_uv;
+layout (location = 2) out int vsout_type;
+layout (location = 3) out vec3 vsout_diffuse_factor;
+layout (location = 4) out vec3 vsout_specular_component;
 
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
