@@ -93,5 +93,8 @@
     <ClInclude Include="NglTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NglLayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

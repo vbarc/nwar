@@ -171,6 +171,7 @@
     <ClInclude Include="nglfrag.h" />
     <ClInclude Include="nglgeom.h" />
     <ClInclude Include="nglgl.h" />
+    <ClInclude Include="NglLayer.h" />
     <ClInclude Include="ngllog.h" />
     <ClInclude Include="NglProgram.h" />
     <ClInclude Include="NglTerrain.h" />

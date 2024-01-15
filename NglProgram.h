@@ -6,15 +6,13 @@
 
 class NglProgram {
 public:
-    ~NglProgram();
     NglProgram(const NglProgram&) = delete;
     NglProgram& operator=(const NglProgram&) = delete;
     NglProgram(NglProgram&&) noexcept;
     NglProgram& operator=(NglProgram&&) noexcept;
+    ~NglProgram();
 
     void use();
-
-    operator GLuint() const;
 
     class Builder {
     public:

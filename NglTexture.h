@@ -6,6 +6,10 @@ class NglTexture {
 public:
     NglTexture(const char* filename);
     NglTexture(const void* data, uint32_t length, const char* label);
+    NglTexture(const NglTexture&) = delete;
+    NglTexture& operator=(const NglTexture&) = delete;
+    NglTexture(NglTexture&&) noexcept;
+    NglTexture& operator=(NglTexture&&) noexcept;
     ~NglTexture();
 
     void bind(GLuint unit);

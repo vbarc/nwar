@@ -9,12 +9,6 @@ NglProgram::NglProgram(GLuint name) : mName(name) {
     NGL_ASSERT(name);
 }
 
-NglProgram::~NglProgram() {
-    if (mName) {
-        glDeleteProgram(mName);
-    }
-}
-
 NglProgram::NglProgram(NglProgram&& otherProgram) noexcept : mName(std::exchange(otherProgram.mName, 0)) {}
 
 NglProgram& NglProgram::operator=(NglProgram&& otherProgram) noexcept {
@@ -25,14 +19,15 @@ NglProgram& NglProgram::operator=(NglProgram&& otherProgram) noexcept {
     return *this;
 }
 
+NglProgram::~NglProgram() {
+    if (mName) {
+        glDeleteProgram(mName);
+    }
+}
+
 void NglProgram::use() {
     NGL_ASSERT(mName);
     glUseProgram(mName);
-}
-
-NglProgram::operator GLuint() const {
-    NGL_ASSERT(mName);
-    return mName;
 }
 
 NglProgram::Builder& NglProgram::Builder::setVertexShader(const char* shaderCode) {
