@@ -44,7 +44,7 @@ int main(void) {
             importer.ReadFile(sceneFileName, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
                                                      aiProcess_JoinIdenticalVertices);
     if (scene) {
-        NGL_LOGI("%s loaded successfully", sceneFileName);
+        NGL_LOGI("%s loaded", sceneFileName);
     } else {
         NGL_LOGE("Error loading %s: %s", sceneFileName, importer.GetErrorString());
         abort();
@@ -314,6 +314,7 @@ int main(void) {
         NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
         NGL_LOGI("Diffuse texture 0, path: %s", path.C_Str());
         const aiTexture* aiTexture = scene->GetEmbeddedTexture(path.C_Str());
+        NGL_ASSERT(aiTexture);
         NGL_LOGI("Diffuse texture 0, width: %u, height: %u", aiTexture->mWidth, aiTexture->mHeight);
         NGL_ASSERT(aiTexture->mHeight == 0);
         NGL_ASSERT(aiTexture->mWidth > 0);
@@ -322,6 +323,8 @@ int main(void) {
         int height;
         unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(aiTexture->pcData),
                                                       aiTexture->mWidth, &width, &height, nullptr, STBI_rgb);
+        NGL_ASSERT(pixels);
+        NGL_LOGI("Diffuse texture 0 loaded, width: %d, height: %d", width, height);
 
         glCreateTextures(GL_TEXTURE_2D, 1, &soldierTexture);
         NGL_CHECK_ERRORS;

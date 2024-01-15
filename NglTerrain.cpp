@@ -24,9 +24,10 @@ static int index(int i, int j);
 static vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int index2, int index3);
 
 NglTerrain::NglTerrain() {
-    mPixelData = stbi_load("terrain.png", &mPixelWidth, &mPixelDepth, nullptr, STBI_grey);
-    NGL_LOGI("Terrain loaded, data: %p, width: %d, depth: %d", mPixelData, mPixelWidth, mPixelDepth);
+    const char* filename = "terrain-map.png";
+    mPixelData = stbi_load(filename, &mPixelWidth, &mPixelDepth, nullptr, STBI_grey);
     NGL_ASSERT(mPixelData);
+    NGL_LOGI("%s loaded, width: %d, depth: %d", filename, mPixelWidth, mPixelDepth);
     for (int r = 0; r < mPixelDepth; r++) {
         for (int c = 0; c < mPixelWidth; c++) {
             NGL_LOGI("(%02d, %02d): %d", r, c, mPixelData[r * mPixelWidth + c]);
