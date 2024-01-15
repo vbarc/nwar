@@ -1,6 +1,5 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <stb_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "NglBuffer.h"
 #include "NglCamera.h"
 #include "NglProgram.h"
 #include "NglTerrain.h"
@@ -82,10 +82,8 @@ void doMain(GLFWwindow* window) {
     program.use();
 
     // FrameUniform
+    NglBuffer frameUniformBuffer;
     int frameUniformSize = sizeof(FrameUniform);
-    GLuint frameUniformBuffer;
-    glCreateBuffers(1, &frameUniformBuffer);
-    NGL_CHECK_ERRORS;
     glNamedBufferStorage(frameUniformBuffer, frameUniformSize, nullptr, GL_DYNAMIC_STORAGE_BIT);
     NGL_CHECK_ERRORS;
     glBindBufferBase(GL_UNIFORM_BUFFER, 0 /*FrameUniform*/, frameUniformBuffer);
@@ -106,9 +104,7 @@ void doMain(GLFWwindow* window) {
     NGL_LOGI("Terrain generation time: %0.3fs", terrainGenerationTime);
 
     // Vertices
-    GLuint terrainVertexBuffer;
-    glCreateBuffers(1, &terrainVertexBuffer);
-    NGL_CHECK_ERRORS;
+    NglBuffer terrainVertexBuffer;
     glNamedBufferStorage(terrainVertexBuffer, terrainVertices.size() * sizeof(NglVertex), terrainVertices.data(), 0);
     NGL_CHECK_ERRORS;
 
@@ -140,9 +136,7 @@ void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
 
     // Indices
-    GLuint terrainIndexBuffer;
-    glCreateBuffers(1, &terrainIndexBuffer);
-    NGL_CHECK_ERRORS;
+    NglBuffer terrainIndexBuffer;
     glNamedBufferStorage(terrainIndexBuffer, terrainIndices.size() * sizeof(uint32_t), terrainIndices.data(), 0);
     NGL_CHECK_ERRORS;
     glVertexArrayElementBuffer(terrainVao, terrainIndexBuffer);
@@ -162,9 +156,7 @@ void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
 
     // Vertices
-    GLuint soldierVertexBuffer;
-    glCreateBuffers(1, &soldierVertexBuffer);
-    NGL_CHECK_ERRORS;
+    NglBuffer soldierVertexBuffer;
     glNamedBufferStorage(soldierVertexBuffer, soldierVertices.size() * sizeof(NglVertex), soldierVertices.data(), 0);
     NGL_CHECK_ERRORS;
 
@@ -196,9 +188,7 @@ void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
 
     // Indices
-    GLuint soldierIndexBuffer;
-    glCreateBuffers(1, &soldierIndexBuffer);
-    NGL_CHECK_ERRORS;
+    NglBuffer soldierIndexBuffer;
     glNamedBufferStorage(soldierIndexBuffer, soldierIndices.size() * sizeof(uint32_t), soldierIndices.data(), 0);
     NGL_CHECK_ERRORS;
     glVertexArrayElementBuffer(soldierVao, soldierIndexBuffer);
@@ -261,14 +251,6 @@ void doMain(GLFWwindow* window) {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glDeleteBuffers(1, &soldierIndexBuffer);
-    glDeleteBuffers(1, &soldierVertexBuffer);
-
-    glDeleteBuffers(1, &terrainIndexBuffer);
-    glDeleteBuffers(1, &terrainVertexBuffer);
-
-    glDeleteBuffers(1, &frameUniformBuffer);
 }
 
 int main(void) {

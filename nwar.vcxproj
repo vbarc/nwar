@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="glad\src\glad.c" />
     <ClCompile Include="NglBicubicInterpolation.cpp" />
+    <ClCompile Include="NglBuffer.cpp" />
     <ClCompile Include="NglCamera.cpp" />
     <ClCompile Include="ngldbg.cpp" />
     <ClCompile Include="nglerr.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="nglassert.h" />
     <ClInclude Include="nglassimp.h" />
     <ClInclude Include="NglBicubicInterpolation.h" />
+    <ClInclude Include="NglBuffer.h" />
     <ClInclude Include="NglCamera.h" />
     <ClInclude Include="ngldbg.h" />
     <ClInclude Include="nglerr.h" />
