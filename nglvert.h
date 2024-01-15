@@ -24,9 +24,16 @@ const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
 
 void main() {
-    vec3 light_vector = normalize(light_position - in_position);
+    vec3 position;
+    if (gl_InstanceID == 0) {
+        position = in_position;
+    } else {
+        position = in_position + vec3(4 * gl_InstanceID, 0, 0);
+    }
 
-    vec4 position_in_view = model_view_matrix * vec4(in_position, 1);
+    vec3 light_vector = normalize(light_position - position);
+
+    vec4 position_in_view = model_view_matrix * vec4(position, 1);
     vec3 normal_in_view = mat3(model_view_matrix) * in_normal;
     vec3 light_vector_in_view = mat3(model_view_matrix) * light_vector;
     vec3 view_vector_in_view = -position_in_view.xyz;

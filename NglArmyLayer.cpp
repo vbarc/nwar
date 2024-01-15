@@ -12,6 +12,10 @@
 #include "nglgl.h"
 #include "ngllog.h"
 
+constexpr glm::ivec2 kUnitSize = glm::ivec2(10, 10);
+constexpr glm::ivec2 kUnitCount = glm::ivec2(3, 5);
+constexpr GLsizei kInstanceCount = kUnitSize.x * kUnitSize.y * kUnitCount.x * kUnitCount.y * 2;
+
 NglArmyLayer::NglArmyLayer() {
     // GLTF model
     const char* sceneFileName = "simple-man.glb";
@@ -117,6 +121,6 @@ void NglArmyLayer::draw() {
     glBindVertexArray(mVao);
     NGL_CHECK_ERRORS;
     mTexture.bind(0);
-    glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, 0);
+    glDrawElementsInstanced(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, 0, kInstanceCount);
     NGL_CHECK_ERRORS;
 }
