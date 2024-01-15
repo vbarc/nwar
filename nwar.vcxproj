@@ -155,6 +155,7 @@
     <ClCompile Include="NglProgram.cpp" />
     <ClCompile Include="NglTerrain.cpp" />
     <ClCompile Include="NglTexture.cpp" />
+    <ClCompile Include="NglVertexArray.cpp" />
     <ClCompile Include="nwar.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +179,7 @@
     <ClInclude Include="NglTexture.h" />
     <ClInclude Include="nglvert.h" />
     <ClInclude Include="NglVertex.h" />
+    <ClInclude Include="NglVertexArray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

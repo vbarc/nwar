@@ -13,6 +13,7 @@
 #include "NglProgram.h"
 #include "NglTerrain.h"
 #include "NglTexture.h"
+#include "NglVertexArray.h"
 #include "nglassert.h"
 #include "nglassimp.h"
 #include "ngldbg.h"
@@ -93,9 +94,7 @@ void doMain(GLFWwindow* window) {
     // Terrain
 
     // VAO
-    GLuint terrainVao;
-    glCreateVertexArrays(1, &terrainVao);
-    NGL_CHECK_ERRORS;
+    NglVertexArray terrainVao;
     glBindVertexArray(terrainVao);
     NGL_CHECK_ERRORS;
 
@@ -158,9 +157,7 @@ void doMain(GLFWwindow* window) {
     // Soldier
 
     // VAO
-    GLuint soldierVao;
-    glCreateVertexArrays(1, &soldierVao);
-    NGL_CHECK_ERRORS;
+    NglVertexArray soldierVao;
     glBindVertexArray(soldierVao);
     NGL_CHECK_ERRORS;
 
@@ -267,11 +264,9 @@ void doMain(GLFWwindow* window) {
 
     glDeleteBuffers(1, &soldierIndexBuffer);
     glDeleteBuffers(1, &soldierVertexBuffer);
-    glDeleteVertexArrays(1, &soldierVao);
 
     glDeleteBuffers(1, &terrainIndexBuffer);
     glDeleteBuffers(1, &terrainVertexBuffer);
-    glDeleteVertexArrays(1, &terrainVao);
 
     glDeleteBuffers(1, &frameUniformBuffer);
 }

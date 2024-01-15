@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "ngllog.h"
 
 #define NGL_STR(x) #x

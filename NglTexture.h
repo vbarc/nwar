@@ -8,8 +8,8 @@ public:
     NglTexture(const void* data, uint32_t length, const char* label);
     NglTexture(const NglTexture&) = delete;
     NglTexture& operator=(const NglTexture&) = delete;
-    NglTexture(NglTexture&&) noexcept;
-    NglTexture& operator=(NglTexture&&) noexcept;
+    NglTexture(NglTexture&&) = delete;
+    NglTexture& operator=(NglTexture&&) = delete;
     ~NglTexture();
 
     void bind(GLuint unit);
