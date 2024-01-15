@@ -12,6 +12,7 @@
 #include "NglCamera.h"
 #include "NglProgram.h"
 #include "NglTerrain.h"
+#include "NglTexture.h"
 #include "nglassert.h"
 #include "nglassimp.h"
 #include "ngldbg.h"
@@ -34,7 +35,7 @@ struct FrameUniform {
 NglCamera gCamera(vec3(0.0f, 20.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 bool gIsWireFrameEnabled = false;
 
-int main(void) {
+void doMain(GLFWwindow* window) {
     NglTerrain terrain;
 
     Assimp::Importer importer;
@@ -71,58 +72,6 @@ int main(void) {
             soldierIndices.push_back(face.mIndices[2]);
         }
     }
-
-    glfwSetErrorCallback(
-            [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
-
-    if (!glfwInit()) {
-        NGL_LOGE("glfwInit() failed");
-        abort();
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    nglPrepareDebugIfNecessary();
-
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War", nullptr, nullptr);
-    if (!window) {
-        NGL_LOGE("glfwCreateWindow() failed");
-        glfwTerminate();
-        abort();
-    }
-
-    glfwSetKeyCallback(window, [](auto window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_ESCAPE && action != GLFW_RELEASE) {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-            return;
-        }
-        if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
-            gIsWireFrameEnabled = !gIsWireFrameEnabled;
-            return;
-        }
-        if (gCamera.onKeyEvent(key, scancode, action, mods)) {
-            return;
-        }
-    });
-
-    glfwSetMouseButtonCallback(window, [](auto window, int button, int action, int mods) {
-        if (gCamera.onMouseButtonEvent(window, button, action, mods)) {
-            return;
-        }
-    });
-
-    glfwSetCursorPosCallback(window, [](auto window, double x, double y) {
-        if (gCamera.onMouseMotionEvent(window, x, y)) {
-            return;
-        }
-    });
-
-    glfwMakeContextCurrent(window);
-    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
-    glfwSwapInterval(1);
-
-    nglEnableDebugIfNecessary();
 
     NglProgram program = NglProgram::Builder()
                                  .setVertexShader(gVertexShaderSrc)
@@ -201,32 +150,7 @@ int main(void) {
     NGL_CHECK_ERRORS;
 
     // Texture
-    GLuint terrainTexture;
-    {
-        const char* filename = "terrain-texture.png";
-        int width;
-        int height;
-        unsigned char* pixels = stbi_load(filename, &width, &height, nullptr, STBI_rgb);
-        NGL_ASSERT(pixels);
-        NGL_LOGI("%s loaded, width: %d, height: %d", filename, width, height);
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &terrainTexture);
-        NGL_CHECK_ERRORS;
-        glTextureParameteri(terrainTexture, GL_TEXTURE_MAX_LEVEL, 0);
-        NGL_CHECK_ERRORS;
-        glTextureParameteri(terrainTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        NGL_CHECK_ERRORS;
-        glTextureParameteri(terrainTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        NGL_CHECK_ERRORS;
-        glTextureStorage2D(terrainTexture, 1, GL_RGB8, width, height);
-        NGL_CHECK_ERRORS;
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        NGL_CHECK_ERRORS;
-        glTextureSubImage2D(terrainTexture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        NGL_CHECK_ERRORS;
-
-        stbi_image_free(pixels);
-    }
+    NglTexture terrainTexture("terrain-texture.png");
 
     glBindVertexArray(0);
     NGL_CHECK_ERRORS;
@@ -284,46 +208,21 @@ int main(void) {
     NGL_CHECK_ERRORS;
 
     // Texture
-    GLuint soldierTexture;
-    {
-        NGL_ASSERT(scene->mNumMaterials > 0);
-        const aiMaterial* material = scene->mMaterials[0];
-        NGL_LOGI("Material: %s", material->GetName().C_Str());
-        NGL_ASSERT(material->GetName().length > 0);
-        NGL_LOGI("Diffuse texture count: %u", material->GetTextureCount(aiTextureType_DIFFUSE));
-        aiString path;
-        NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
-        NGL_LOGI("Diffuse texture 0, path: %s", path.C_Str());
-        const aiTexture* aiTexture = scene->GetEmbeddedTexture(path.C_Str());
-        NGL_ASSERT(aiTexture);
-        NGL_LOGI("Diffuse texture 0, width: %u, height: %u", aiTexture->mWidth, aiTexture->mHeight);
-        NGL_ASSERT(aiTexture->mHeight == 0);
-        NGL_ASSERT(aiTexture->mWidth > 0);
-
-        int width;
-        int height;
-        unsigned char* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(aiTexture->pcData),
-                                                      aiTexture->mWidth, &width, &height, nullptr, STBI_rgb);
-        NGL_ASSERT(pixels);
-        NGL_LOGI("Diffuse texture 0 loaded, width: %d, height: %d", width, height);
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &soldierTexture);
-        NGL_CHECK_ERRORS;
-        glTextureParameteri(soldierTexture, GL_TEXTURE_MAX_LEVEL, 0);
-        NGL_CHECK_ERRORS;
-        glTextureParameteri(soldierTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        NGL_CHECK_ERRORS;
-        glTextureParameteri(soldierTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        NGL_CHECK_ERRORS;
-        glTextureStorage2D(soldierTexture, 1, GL_RGB8, width, height);
-        NGL_CHECK_ERRORS;
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        NGL_CHECK_ERRORS;
-        glTextureSubImage2D(soldierTexture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-        NGL_CHECK_ERRORS;
-
-        stbi_image_free(pixels);
-    }
+    NGL_ASSERT(scene->mNumMaterials > 0);
+    const aiMaterial* material = scene->mMaterials[0];
+    NGL_LOGI("Material: %s", material->GetName().C_Str());
+    NGL_ASSERT(material->GetName().length > 0);
+    NGL_LOGI("Diffuse texture count: %u", material->GetTextureCount(aiTextureType_DIFFUSE));
+    aiString path;
+    NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
+    NGL_LOGI("Diffuse texture 0, path: %s", path.C_Str());
+    const aiTexture* aiTexture = scene->GetEmbeddedTexture(path.C_Str());
+    NGL_ASSERT(aiTexture);
+    NGL_LOGI("Diffuse texture 0, width: %u, height: %u", aiTexture->mWidth, aiTexture->mHeight);
+    NGL_ASSERT(aiTexture->pcData);
+    NGL_ASSERT(aiTexture->mHeight == 0);
+    NGL_ASSERT(aiTexture->mWidth > 0);
+    NglTexture soldierTexture(aiTexture->pcData, aiTexture->mWidth, "Diffuse texture 0");
 
     glBindVertexArray(0);
     NGL_CHECK_ERRORS;
@@ -352,15 +251,13 @@ int main(void) {
 
         glBindVertexArray(terrainVao);
         NGL_CHECK_ERRORS;
-        glBindTextures(0, 1, &terrainTexture);
-        NGL_CHECK_ERRORS;
+        terrainTexture.bind(0);
         glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(terrainIndices)), GL_UNSIGNED_INT, 0);
         NGL_CHECK_ERRORS;
 
         glBindVertexArray(soldierVao);
         NGL_CHECK_ERRORS;
-        glBindTextures(0, 1, &soldierTexture);
-        NGL_CHECK_ERRORS;
+        soldierTexture.bind(0);
         glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(soldierIndices)), GL_UNSIGNED_INT, 0);
         NGL_CHECK_ERRORS;
 
@@ -368,17 +265,71 @@ int main(void) {
         glfwPollEvents();
     }
 
-    glDeleteTextures(1, &soldierTexture);
     glDeleteBuffers(1, &soldierIndexBuffer);
     glDeleteBuffers(1, &soldierVertexBuffer);
     glDeleteVertexArrays(1, &soldierVao);
 
-    glDeleteTextures(1, &terrainTexture);
     glDeleteBuffers(1, &terrainIndexBuffer);
     glDeleteBuffers(1, &terrainVertexBuffer);
     glDeleteVertexArrays(1, &terrainVao);
 
     glDeleteBuffers(1, &frameUniformBuffer);
+}
+
+int main(void) {
+    glfwSetErrorCallback(
+            [](int error, const char* description) { NGL_LOGE("GLFW error: %s (%d)", description, error); });
+
+    if (!glfwInit()) {
+        NGL_LOGE("glfwInit() failed");
+        abort();
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    nglPrepareDebugIfNecessary();
+
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War", nullptr, nullptr);
+    if (!window) {
+        NGL_LOGE("glfwCreateWindow() failed");
+        glfwTerminate();
+        abort();
+    }
+
+    glfwSetKeyCallback(window, [](auto window, int key, int scancode, int action, int mods) {
+        if (key == GLFW_KEY_ESCAPE && action != GLFW_RELEASE) {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            return;
+        }
+        if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
+            gIsWireFrameEnabled = !gIsWireFrameEnabled;
+            return;
+        }
+        if (gCamera.onKeyEvent(key, scancode, action, mods)) {
+            return;
+        }
+    });
+
+    glfwSetMouseButtonCallback(window, [](auto window, int button, int action, int mods) {
+        if (gCamera.onMouseButtonEvent(window, button, action, mods)) {
+            return;
+        }
+    });
+
+    glfwSetCursorPosCallback(window, [](auto window, double x, double y) {
+        if (gCamera.onMouseMotionEvent(window, x, y)) {
+            return;
+        }
+    });
+
+    glfwMakeContextCurrent(window);
+    gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress));
+    glfwSwapInterval(1);
+
+    nglEnableDebugIfNecessary();
+
+    doMain(window);
 
     glfwDestroyWindow(window);
     glfwTerminate();

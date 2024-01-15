@@ -39,6 +39,9 @@
     <ClCompile Include="NglBicubicInterpolation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NglTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -85,6 +88,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nglassimp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NglTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
