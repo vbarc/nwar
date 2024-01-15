@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad\src\glad.c" />
+    <ClCompile Include="NglArmyLayer.cpp" />
     <ClCompile Include="NglBicubicInterpolation.cpp" />
     <ClCompile Include="NglBuffer.cpp" />
     <ClCompile Include="NglCamera.cpp" />
@@ -164,6 +165,7 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NglArmyLayer.h" />
     <ClInclude Include="nglassert.h" />
     <ClInclude Include="nglassimp.h" />
     <ClInclude Include="NglBicubicInterpolation.h" />
@@ -174,7 +176,6 @@
     <ClInclude Include="nglfrag.h" />
     <ClInclude Include="nglgeom.h" />
     <ClInclude Include="nglgl.h" />
-    <ClInclude Include="NglLayer.h" />
     <ClInclude Include="ngllog.h" />
     <ClInclude Include="NglProgram.h" />
     <ClInclude Include="NglTerrainGeometry.h" />

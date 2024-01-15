@@ -12,7 +12,7 @@ public:
     NglProgram& operator=(NglProgram&&) noexcept;
     ~NglProgram();
 
-    void use();
+    void use() const;
 
     class Builder {
     public:

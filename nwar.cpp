@@ -1,13 +1,11 @@
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <assimp/Importer.hpp>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "NglArmyLayer.h"
 #include "NglBuffer.h"
 #include "NglCamera.h"
 #include "NglProgram.h"
@@ -15,7 +13,6 @@
 #include "NglTexture.h"
 #include "NglVertexArray.h"
 #include "nglassert.h"
-#include "nglassimp.h"
 #include "ngldbg.h"
 #include "nglerr.h"
 #include "nglfrag.h"
@@ -38,41 +35,6 @@ bool gIsWireFrameEnabled = false;
 
 void doMain(GLFWwindow* window) {
     NglTerrainGeometry terrainGeometry;
-
-    Assimp::Importer importer;
-
-    const char* sceneFileName = "simple-man.glb";
-    const aiScene* scene =
-            importer.ReadFile(sceneFileName, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                                     aiProcess_JoinIdenticalVertices);
-    if (scene) {
-        NGL_LOGI("%s loaded", sceneFileName);
-    } else {
-        NGL_LOGE("Error loading %s: %s", sceneFileName, importer.GetErrorString());
-        abort();
-    }
-
-    std::vector<NglVertex> soldierVertices;
-    std::vector<uint32_t> soldierIndices;
-    for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
-        const aiMesh* mesh = scene->mMeshes[m];
-        NGL_ASSERT(mesh->HasTextureCoords(0));
-        for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
-            NglVertex vertex;
-            vertex.position = ai2glm(mesh->mVertices[v]);
-            vertex.position += glm::vec3(0, 10, 0);  // Move up
-            vertex.normal = ai2glm(mesh->mNormals[v]);
-            vertex.uv = ai2glmvec2(mesh->mTextureCoords[0][v]);
-            soldierVertices.push_back(vertex);
-        }
-        for (unsigned int f = 0; f < mesh->mNumFaces; f++) {
-            const aiFace& face = mesh->mFaces[f];
-            NGL_ASSERT(face.mNumIndices == 3);
-            soldierIndices.push_back(face.mIndices[0]);
-            soldierIndices.push_back(face.mIndices[1]);
-            soldierIndices.push_back(face.mIndices[2]);
-        }
-    }
 
     NglProgram program = NglProgram::Builder()
                                  .setVertexShader(gVertexShaderSrc)
@@ -143,73 +105,8 @@ void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
 
     // Texture
-    NglTexture terrainTexture("terrain-texture.png");
-
-    glBindVertexArray(0);
-    NGL_CHECK_ERRORS;
-
-    // Soldier
-
-    // VAO
-    NglVertexArray soldierVao;
-    glBindVertexArray(soldierVao);
-    NGL_CHECK_ERRORS;
-
-    // Vertices
-    NglBuffer soldierVertexBuffer;
-    glNamedBufferStorage(soldierVertexBuffer, soldierVertices.size() * sizeof(NglVertex), soldierVertices.data(), 0);
-    NGL_CHECK_ERRORS;
-
-    glVertexArrayAttribFormat(soldierVao, 0 /*position*/, 3, GL_FLOAT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(soldierVao, 0, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(soldierVao, 0, soldierVertexBuffer, 0, sizeof(NglVertex));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(soldierVao, 0);
-    NGL_CHECK_ERRORS;
-
-    glVertexArrayAttribFormat(soldierVao, 1 /*normal*/, 3, GL_FLOAT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(soldierVao, 1, 1);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(soldierVao, 1, soldierVertexBuffer, offsetof(NglVertex, normal), sizeof(NglVertex));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(soldierVao, 1);
-    NGL_CHECK_ERRORS;
-
-    glVertexArrayAttribFormat(soldierVao, 2 /*uv*/, 2, GL_FLOAT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(soldierVao, 2, 2);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(soldierVao, 2, soldierVertexBuffer, offsetof(NglVertex, uv), sizeof(NglVertex));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(soldierVao, 2);
-    NGL_CHECK_ERRORS;
-
-    // Indices
-    NglBuffer soldierIndexBuffer;
-    glNamedBufferStorage(soldierIndexBuffer, soldierIndices.size() * sizeof(uint32_t), soldierIndices.data(), 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayElementBuffer(soldierVao, soldierIndexBuffer);
-    NGL_CHECK_ERRORS;
-
-    // Texture
-    NGL_ASSERT(scene->mNumMaterials > 0);
-    const aiMaterial* material = scene->mMaterials[0];
-    NGL_LOGI("Material: %s", material->GetName().C_Str());
-    NGL_ASSERT(material->GetName().length > 0);
-    NGL_LOGI("Diffuse texture count: %u", material->GetTextureCount(aiTextureType_DIFFUSE));
-    aiString path;
-    NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
-    NGL_LOGI("Diffuse texture 0, path: %s", path.C_Str());
-    const aiTexture* aiTexture = scene->GetEmbeddedTexture(path.C_Str());
-    NGL_ASSERT(aiTexture);
-    NGL_LOGI("Diffuse texture 0, width: %u, height: %u", aiTexture->mWidth, aiTexture->mHeight);
-    NGL_ASSERT(aiTexture->pcData);
-    NGL_ASSERT(aiTexture->mHeight == 0);
-    NGL_ASSERT(aiTexture->mWidth > 0);
-    NglTexture soldierTexture(aiTexture->pcData, aiTexture->mWidth, "Diffuse texture 0");
+    NglTexture terrainTexture;
+    terrainTexture.load("terrain-texture.png");
 
     glBindVertexArray(0);
     NGL_CHECK_ERRORS;
@@ -220,6 +117,7 @@ void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
 
     FrameUniform frameUniform;
+    NglArmyLayer armyLayer;
 
     while (!glfwWindowShouldClose(window)) {
         gCamera.onNextFrame();
@@ -242,11 +140,7 @@ void doMain(GLFWwindow* window) {
         glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(terrainIndices)), GL_UNSIGNED_INT, 0);
         NGL_CHECK_ERRORS;
 
-        glBindVertexArray(soldierVao);
-        NGL_CHECK_ERRORS;
-        soldierTexture.bind(0);
-        glDrawElements(GL_TRIANGLES, static_cast<int>(std::size(soldierIndices)), GL_UNSIGNED_INT, 0);
-        NGL_CHECK_ERRORS;
+        armyLayer.render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

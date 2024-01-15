@@ -25,7 +25,7 @@ NglProgram::~NglProgram() {
     }
 }
 
-void NglProgram::use() {
+void NglProgram::use() const {
     NGL_ASSERT(mName);
     glUseProgram(mName);
 }

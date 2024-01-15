@@ -48,6 +48,9 @@
     <ClCompile Include="NglTerrainGeometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NglArmyLayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -96,9 +99,6 @@
     <ClInclude Include="NglTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NglLayer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NglVertexArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -106,6 +106,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NglTerrainGeometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NglArmyLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
