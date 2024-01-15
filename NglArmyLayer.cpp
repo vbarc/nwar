@@ -121,6 +121,6 @@ void NglArmyLayer::draw() {
     glBindVertexArray(mVao);
     NGL_CHECK_ERRORS;
     mTexture.bind(0);
-    glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, 0, kInstanceCount + 1, 1);
+    glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, 0, kInstanceCount, 1);
     NGL_CHECK_ERRORS;
 }

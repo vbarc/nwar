@@ -38,10 +38,10 @@ const float specular_power = 48;
 
 void main() {
     vec3 position;
-    if (gl_InstanceID == 0) {
+    if (gl_BaseInstance == 0) {
         position = in_position;
     } else {
-        int index = gl_InstanceID - 1;
+        int index = gl_InstanceID;
 
         int regiment_index = index / regiment_instance_count;
         index = index % regiment_instance_count;
