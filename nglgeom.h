@@ -7,17 +7,13 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
 in VS_OUT {
-    vec4 color;
     vec2 uv;
-    int type;
     vec3 diffuse_factor;
     vec3 specular_component;
 } gs_in[];
 
 out GS_OUT {
-    vec4 color;
     vec2 uv;
-    int type;
     vec3 diffuse_factor;
     vec3 specular_component;
     vec3 barycoords;
@@ -32,9 +28,7 @@ const vec3 reference_barycoords[] = vec3[] (
 void main() {
     for (int i = 0; i < 3; i++) {
         gl_Position = gl_in[i].gl_Position;
-        gs_out.color = gs_in[i].color;
         gs_out.uv = gs_in[i].uv;
-        gs_out.type = gs_in[i].type;
         gs_out.diffuse_factor = gs_in[i].diffuse_factor;
         gs_out.specular_component = gs_in[i].specular_component;
         gs_out.barycoords = reference_barycoords[i];

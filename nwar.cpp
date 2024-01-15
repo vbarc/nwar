@@ -61,7 +61,6 @@ int main(void) {
             vertex.position += glm::vec3(0, 10, 0);  // Move up
             vertex.normal = ai2glm(mesh->mNormals[v]);
             vertex.uv = ai2glmvec2(mesh->mTextureCoords[0][v]);
-            vertex.type = 1;
             soldierVertices.push_back(vertex);
         }
         for (unsigned int f = 0; f < mesh->mNumFaces; f++) {
@@ -192,15 +191,6 @@ int main(void) {
     glEnableVertexArrayAttrib(terrainVao, 2);
     NGL_CHECK_ERRORS;
 
-    glVertexArrayAttribFormat(terrainVao, 3 /*type*/, 1, GL_INT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(terrainVao, 3, 3);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(terrainVao, 3, terrainVertexBuffer, offsetof(NglVertex, type), sizeof(NglVertex));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(terrainVao, 3);
-    NGL_CHECK_ERRORS;
-
     // Indices
     GLuint terrainIndexBuffer;
     glCreateBuffers(1, &terrainIndexBuffer);
@@ -282,15 +272,6 @@ int main(void) {
     glVertexArrayVertexBuffer(soldierVao, 2, soldierVertexBuffer, offsetof(NglVertex, uv), sizeof(NglVertex));
     NGL_CHECK_ERRORS;
     glEnableVertexArrayAttrib(soldierVao, 2);
-    NGL_CHECK_ERRORS;
-
-    glVertexArrayAttribFormat(soldierVao, 3 /*type*/, 1, GL_INT, GL_FALSE, 0);
-    NGL_CHECK_ERRORS;
-    glVertexArrayAttribBinding(soldierVao, 3, 3);
-    NGL_CHECK_ERRORS;
-    glVertexArrayVertexBuffer(soldierVao, 3, soldierVertexBuffer, offsetof(NglVertex, type), sizeof(NglVertex));
-    NGL_CHECK_ERRORS;
-    glEnableVertexArrayAttrib(soldierVao, 3);
     NGL_CHECK_ERRORS;
 
     // Indices

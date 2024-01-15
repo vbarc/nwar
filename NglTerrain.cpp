@@ -76,7 +76,6 @@ void NglTerrain::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32
             NglVertex vertex;
             vertex.position = vec3(x, y, z);
             vertex.uv = vec2(0);
-            vertex.type = 1;
             verticesOut->push_back(vertex);
         }
     }
