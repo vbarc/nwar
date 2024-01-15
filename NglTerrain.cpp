@@ -9,6 +9,7 @@
 #include "nglassert.h"
 #include "ngllog.h"
 
+using glm::vec2;
 using glm::vec3;
 
 constexpr float kMinX = -100.0f;
@@ -23,9 +24,8 @@ static int index(int i, int j);
 static vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int index2, int index3);
 
 NglTerrain::NglTerrain() {
-    int n;
-    mPixelData = stbi_load("terrain.png", &mPixelWidth, &mPixelDepth, &n, STBI_grey);
-    NGL_LOGI("Terrain loaded, data: %p, width: %d, depth: %d, n: %d", mPixelData, mPixelWidth, mPixelDepth, n);
+    mPixelData = stbi_load("terrain.png", &mPixelWidth, &mPixelDepth, nullptr, STBI_grey);
+    NGL_LOGI("Terrain loaded, data: %p, width: %d, depth: %d", mPixelData, mPixelWidth, mPixelDepth);
     NGL_ASSERT(mPixelData);
     for (int r = 0; r < mPixelDepth; r++) {
         for (int c = 0; c < mPixelWidth; c++) {
@@ -74,6 +74,8 @@ void NglTerrain::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32
 
             NglVertex vertex;
             vertex.position = vec3(x, y, z);
+            vertex.uv = vec2(0);
+            vertex.type = 1;
             verticesOut->push_back(vertex);
         }
     }
