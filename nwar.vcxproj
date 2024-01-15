@@ -156,6 +156,7 @@
     <ClCompile Include="nglerr.cpp" />
     <ClCompile Include="NglProgram.cpp" />
     <ClCompile Include="NglTerrainGeometry.cpp" />
+    <ClCompile Include="NglTerrainLayer.cpp" />
     <ClCompile Include="NglTexture.cpp" />
     <ClCompile Include="NglVertexArray.cpp" />
     <ClCompile Include="nwar.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="ngllog.h" />
     <ClInclude Include="NglProgram.h" />
     <ClInclude Include="NglTerrainGeometry.h" />
+    <ClInclude Include="NglTerrainLayer.h" />
     <ClInclude Include="NglTexture.h" />
     <ClInclude Include="nglvert.h" />
     <ClInclude Include="NglVertex.h" />

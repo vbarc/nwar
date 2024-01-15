@@ -13,7 +13,7 @@ public:
     NglArmyLayer& operator=(NglArmyLayer&&) = delete;
     ~NglArmyLayer();
 
-    void render();
+    void draw();
 
 private:
     const NglVertexArray mVao;

@@ -113,7 +113,7 @@ NglArmyLayer::NglArmyLayer() {
 
 NglArmyLayer::~NglArmyLayer() {}
 
-void NglArmyLayer::render() {
+void NglArmyLayer::draw() {
     glBindVertexArray(mVao);
     NGL_CHECK_ERRORS;
     mTexture.bind(0);

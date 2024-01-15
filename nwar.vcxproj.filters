@@ -51,6 +51,9 @@
     <ClCompile Include="NglArmyLayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NglTerrainLayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -109,6 +112,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NglArmyLayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NglTerrainLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
