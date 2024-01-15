@@ -41,7 +41,7 @@ void main() {
     if (gl_InstanceID == 0) {
         position = in_position;
     } else {
-        int index = gl_InstanceID;
+        int index = gl_InstanceID - 1;
 
         int regiment_index = index / regiment_instance_count;
         index = index % regiment_instance_count;
