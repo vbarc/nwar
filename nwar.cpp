@@ -11,7 +11,7 @@
 #include "NglBuffer.h"
 #include "NglCamera.h"
 #include "NglProgram.h"
-#include "NglTerrain.h"
+#include "NglTerrainGeometry.h"
 #include "NglTexture.h"
 #include "NglVertexArray.h"
 #include "nglassert.h"
@@ -37,7 +37,7 @@ NglCamera gCamera(vec3(0.0f, 20.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1
 bool gIsWireFrameEnabled = false;
 
 void doMain(GLFWwindow* window) {
-    NglTerrain terrain;
+    NglTerrainGeometry terrainGeometry;
 
     Assimp::Importer importer;
 
@@ -99,7 +99,7 @@ void doMain(GLFWwindow* window) {
     double startTime = glfwGetTime();
     std::vector<NglVertex> terrainVertices;
     std::vector<uint32_t> terrainIndices;
-    terrain.getData(&terrainVertices, &terrainIndices);
+    terrainGeometry.getData(&terrainVertices, &terrainIndices);
     double terrainGenerationTime = glfwGetTime() - startTime;
     NGL_LOGI("Terrain generation time: %0.3fs", terrainGenerationTime);
 

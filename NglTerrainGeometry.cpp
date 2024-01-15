@@ -1,4 +1,4 @@
-#include "NglTerrain.h"
+#include "NglTerrainGeometry.h"
 
 #include <algorithm>
 
@@ -23,7 +23,7 @@ constexpr int kGranularity = 100;
 static int index(int i, int j);
 static vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int index2, int index3);
 
-NglTerrain::NglTerrain() {
+NglTerrainGeometry::NglTerrainGeometry() {
     const char* filename = "terrain-map.png";
     mPixelData = stbi_load(filename, &mPixelWidth, &mPixelDepth, nullptr, STBI_grey);
     NGL_ASSERT(mPixelData);
@@ -35,11 +35,11 @@ NglTerrain::NglTerrain() {
     }
 }
 
-NglTerrain::~NglTerrain() {
+NglTerrainGeometry::~NglTerrainGeometry() {
     stbi_image_free(mPixelData);
 }
 
-void NglTerrain::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32_t>* indicesOut) {
+void NglTerrainGeometry::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32_t>* indicesOut) {
     std::vector<std::vector<NglBicubicInterpolation>> interpolations;
     interpolations.resize(mPixelDepth - 2);
     for (int j = 1; j < mPixelDepth - 2; j++) {
@@ -114,7 +114,7 @@ void NglTerrain::getData(std::vector<NglVertex>* verticesOut, std::vector<uint32
     }
 }
 
-float NglTerrain::sample(int pixelX, int pixelZ) {
+float NglTerrainGeometry::sample(int pixelX, int pixelZ) {
     NGL_ASSERT(pixelX >= 0);
     NGL_ASSERT(pixelX < mPixelWidth);
     NGL_ASSERT(pixelZ >= 0);
