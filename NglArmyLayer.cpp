@@ -20,15 +20,14 @@ constexpr float kModelScale = 0.01f;
 
 NglArmyLayer::NglArmyLayer() {
     // GLTF model
-    const char* sceneFileName = "simple-man.glb";
+    const char* path = "soldier.glb";
     Assimp::Importer importer;
-    const aiScene* scene =
-            importer.ReadFile(sceneFileName, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |
-                                                     aiProcess_JoinIdenticalVertices);
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+                                                           aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices);
     if (scene) {
-        NGL_LOGI("%s loaded", sceneFileName);
+        NGL_LOGI("%s loaded", path);
     } else {
-        NGL_LOGE("Error loading %s: %s", sceneFileName, importer.GetErrorString());
+        NGL_LOGE("Error loading %s: %s", path, importer.GetErrorString());
         abort();
     }
 
@@ -109,10 +108,10 @@ NglArmyLayer::NglArmyLayer() {
     NGL_LOGI("Soldier material: %s", material->GetName().C_Str());
     NGL_ASSERT(material->GetName().length > 0);
     NGL_LOGI("Soldier diffuse texture count: %u", material->GetTextureCount(aiTextureType_DIFFUSE));
-    aiString path;
-    NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS);
-    NGL_LOGI("Soldier diffuse texture 0, path: %s", path.C_Str());
-    const aiTexture* aiTexture = scene->GetEmbeddedTexture(path.C_Str());
+    aiString texturePath;
+    NGL_ASSERT(material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS);
+    NGL_LOGI("Soldier diffuse texture 0, path: %s", texturePath.C_Str());
+    const aiTexture* aiTexture = scene->GetEmbeddedTexture(texturePath.C_Str());
     NGL_ASSERT(aiTexture);
     NGL_LOGI("Soldier diffuse texture 0, width: %u, height: %u", aiTexture->mWidth, aiTexture->mHeight);
     NGL_ASSERT(aiTexture->pcData);

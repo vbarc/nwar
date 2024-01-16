@@ -11,7 +11,7 @@ public:
     NglTexture& operator=(NglTexture&&) = delete;
     ~NglTexture();
 
-    void load(const char* filename) const;
+    void load(const char* path) const;
     void load(const void* data, uint32_t length, const char* label) const;
 
     void bind(GLuint unit) const;

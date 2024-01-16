@@ -21,11 +21,11 @@ NglTexture::~NglTexture() {
     NGL_CHECK_ERRORS;
 }
 
-void NglTexture::load(const char* filename) const {
+void NglTexture::load(const char* path) const {
     int width;
     int height;
-    void* pixels = stbi_load(filename, &width, &height, nullptr, STBI_rgb);
-    load(pixels, width, height, filename);
+    void* pixels = stbi_load(path, &width, &height, nullptr, STBI_rgb);
+    load(pixels, width, height, path);
 }
 
 void NglTexture::load(const void* data, uint32_t length, const char* label) const {
