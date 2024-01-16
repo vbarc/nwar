@@ -4,10 +4,10 @@
 
 #include "nglgl.h"
 
-constexpr float kAcceleration = 100.0f;
+constexpr float kAcceleration = 8.0f;
 constexpr float kDeceleration = 6.0f;
 constexpr float kFasterFactor = 8.0f;
-constexpr float kMaxSpeed = 10.0f;
+constexpr float kMaxSpeed = 1.0f;
 constexpr float kRotationFactor = 2.0f;
 
 NglCamera::NglCamera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)

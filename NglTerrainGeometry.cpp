@@ -12,12 +12,12 @@
 using glm::vec2;
 using glm::vec3;
 
-constexpr float kMinX = -100.0f;
-constexpr float kMaxX = 100.0f;
-constexpr float kMinZ = -100.0f;
-constexpr float kMaxZ = 100.0f;
+constexpr float kMinX = -6.0f;
+constexpr float kMaxX = 6.0f;
+constexpr float kMinZ = -6.0f;
+constexpr float kMaxZ = 6.0f;
 constexpr float kMinY = 0.0f;
-constexpr float kMaxY = 5.0f;
+constexpr float kMaxY = 0.5f;
 constexpr int kGranularity = 100;
 
 static int index(int i, int j);

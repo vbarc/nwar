@@ -12,9 +12,11 @@
 #include "nglgl.h"
 #include "ngllog.h"
 
-constexpr glm::ivec2 kUnitSize = glm::ivec2(10, 10);
+constexpr glm::ivec2 kUnitSize = glm::ivec2(12, 12);
 constexpr glm::ivec2 kUnitCount = glm::ivec2(3, 5);
-constexpr GLsizei kInstanceCount = kUnitSize.x * kUnitSize.y * kUnitCount.x * kUnitCount.y * 2;
+constexpr int kRegimentCount = 4;
+constexpr GLsizei kInstanceCount = kUnitSize.x * kUnitSize.y * kUnitCount.x * kUnitCount.y * kRegimentCount;
+constexpr float kModelScale = 0.01f;
 
 NglArmyLayer::NglArmyLayer() {
     // GLTF model
@@ -32,16 +34,17 @@ NglArmyLayer::NglArmyLayer() {
 
     std::vector<NglVertex> soldierVertices;
     std::vector<uint32_t> soldierIndices;
+    float bottom = 0;
     for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
         const aiMesh* mesh = scene->mMeshes[m];
         NGL_ASSERT(mesh->HasTextureCoords(0));
         for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
             NglVertex vertex;
-            vertex.position = ai2glm(mesh->mVertices[v]);
-            vertex.position += glm::vec3(0, 10, 0);  // Move up
+            vertex.position = ai2glm(mesh->mVertices[v]) * kModelScale;
             vertex.normal = ai2glm(mesh->mNormals[v]);
             vertex.uv = ai2glmvec2(mesh->mTextureCoords[0][v]);
             soldierVertices.push_back(vertex);
+            bottom = std::min(bottom, vertex.position.y);
         }
         for (unsigned int f = 0; f < mesh->mNumFaces; f++) {
             const aiFace& face = mesh->mFaces[f];
@@ -50,6 +53,12 @@ NglArmyLayer::NglArmyLayer() {
             soldierIndices.push_back(face.mIndices[1]);
             soldierIndices.push_back(face.mIndices[2]);
         }
+    }
+
+    // Rebase to y = 0
+    for (NglVertex& vertex : soldierVertices) {
+        vertex.position.y -= bottom;
+        vertex.position.y += 0.5f;
     }
 
     // VAO

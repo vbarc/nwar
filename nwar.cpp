@@ -23,7 +23,7 @@ struct FrameUniform {
     int32_t is_wireframe_enabled;
 };
 
-NglCamera gCamera(vec3(0.0f, 20.0f, 50.0f), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
+NglCamera gCamera(vec3(0.0f, 1.6f, 1.6f), vec3(0.0f, 0.6f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 bool gIsWireFrameEnabled = false;
 
 void doMain(GLFWwindow* window) {
