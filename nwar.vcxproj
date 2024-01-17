@@ -153,6 +153,7 @@
     <ClCompile Include="NglBuffer.cpp" />
     <ClCompile Include="NglCamera.cpp" />
     <ClCompile Include="ngldbg.cpp" />
+    <ClCompile Include="NglDisplacementMap.cpp" />
     <ClCompile Include="nglerr.cpp" />
     <ClCompile Include="NglProgram.cpp" />
     <ClCompile Include="NglTerrainGeometry.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="NglBuffer.h" />
     <ClInclude Include="NglCamera.h" />
     <ClInclude Include="ngldbg.h" />
+    <ClInclude Include="NglDisplacementMap.h" />
     <ClInclude Include="nglerr.h" />
     <ClInclude Include="nglfrag.h" />
     <ClInclude Include="nglgeom.h" />

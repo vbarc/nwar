@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glm/ext.hpp>
-#include <glm/glm.hpp>
 #include <vector>
 
 #include "NglVertex.h"
@@ -15,12 +13,10 @@ public:
     NglTerrainGeometry& operator=(NglTerrainGeometry&&) = delete;
     ~NglTerrainGeometry();
 
-    void getData(std::vector<NglVertex>* verticesOut, std::vector<uint32_t>* indicesOut);
+    const std::vector<NglVertex>& vertices() const;
+    const std::vector<uint32_t>& indices() const;
 
 private:
-    float sample(int pixelX, int pixelZ);
-
-    int mPixelWidth;
-    int mPixelDepth;
-    unsigned char* mPixelData;
+    std::vector<NglVertex> mVertices;
+    std::vector<uint32_t> mIndices;
 };
