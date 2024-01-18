@@ -5,6 +5,7 @@
 #include "NglBicubicInterpolation.h"
 #include "NglDisplacementMap.h"
 #include "nglassert.h"
+#include "nglgl.h"
 #include "ngllog.h"
 
 using glm::vec2;
@@ -22,6 +23,8 @@ static int index(int i, int j);
 static vec3 vertexNormal(const std::vector<NglVertex>& vertices, int index1, int index2, int index3);
 
 NglTerrainGeometry::NglTerrainGeometry() {
+    double startTime = glfwGetTime();
+
     NglDisplacementMap dm("terrain-map.png");
 
     std::vector<std::vector<NglBicubicInterpolation>> interpolations;
@@ -95,6 +98,8 @@ NglTerrainGeometry::NglTerrainGeometry() {
             mIndices.push_back(index(i, j + 1));
         }
     }
+
+    NGL_LOGI("Terrain geometry generation time: %0.3fs", glfwGetTime() - startTime);
 }
 
 NglTerrainGeometry::~NglTerrainGeometry() {}

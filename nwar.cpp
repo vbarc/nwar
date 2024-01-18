@@ -5,6 +5,7 @@
 #include "NglBuffer.h"
 #include "NglCamera.h"
 #include "NglProgram.h"
+#include "NglTerrainGeometry.h"
 #include "NglTerrainLayer.h"
 #include "ngldbg.h"
 #include "nglerr.h"
@@ -49,8 +50,9 @@ void doMain(GLFWwindow* window) {
     FrameUniform frameUniform;
 
     // Layers
-    NglTerrainLayer terrainLayer;
-    NglArmyLayer armyLayer;
+    NglTerrainGeometry terrainGeometry;
+    NglTerrainLayer terrainLayer(terrainGeometry);
+    NglArmyLayer armyLayer(terrainGeometry);
 
     while (!glfwWindowShouldClose(window)) {
         gCamera.onNextFrame();

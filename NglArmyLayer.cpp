@@ -18,7 +18,7 @@ constexpr int kRegimentCount = 4;
 constexpr GLsizei kInstanceCount = kUnitSize.x * kUnitSize.y * kUnitCount.x * kUnitCount.y * kRegimentCount;
 constexpr float kModelScale = 0.01f;
 
-NglArmyLayer::NglArmyLayer() {
+NglArmyLayer::NglArmyLayer(const NglTerrainGeometry&) {
     // GLTF model
     const char* path = "soldier.glb";
     Assimp::Importer importer;

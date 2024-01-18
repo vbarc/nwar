@@ -1,12 +1,13 @@
 #pragma once
 
 #include "NglBuffer.h"
+#include "NglTerrainGeometry.h"
 #include "NglTexture.h"
 #include "NglVertexArray.h"
 
 class NglArmyLayer {
 public:
-    NglArmyLayer();
+    NglArmyLayer(const NglTerrainGeometry& terrainGeometry);
     NglArmyLayer(const NglArmyLayer&) = delete;
     NglArmyLayer& operator=(const NglArmyLayer&) = delete;
     NglArmyLayer(NglArmyLayer&&) = delete;

@@ -1,16 +1,11 @@
 #include "NglTerrainLayer.h"
 
-#include "NglTerrainGeometry.h"
 #include "nglerr.h"
 #include "ngllog.h"
 
-NglTerrainLayer::NglTerrainLayer() {
-    double startTime = glfwGetTime();
-    NglTerrainGeometry geometry;
-    const std::vector<NglVertex>& vertices = geometry.vertices();
-    const std::vector<uint32_t>& indices = geometry.indices();
-    double terrainGenerationTime = glfwGetTime() - startTime;
-    NGL_LOGI("Terrain generation time: %0.3fs", terrainGenerationTime);
+NglTerrainLayer::NglTerrainLayer(const NglTerrainGeometry& terrainGeometry) {
+    const std::vector<NglVertex>& vertices = terrainGeometry.vertices();
+    const std::vector<uint32_t>& indices = terrainGeometry.indices();
 
     // VAO
     glBindVertexArray(mVao);
