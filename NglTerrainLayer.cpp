@@ -61,7 +61,7 @@ NglTerrainLayer::~NglTerrainLayer() {}
 void NglTerrainLayer::draw() {
     glBindVertexArray(mVao);
     NGL_CHECK_ERRORS;
-    mTexture.bind(0);
+    mTexture.bind(1);
     glDrawElements(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, 0);
     NGL_CHECK_ERRORS;
 }

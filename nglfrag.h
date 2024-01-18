@@ -18,7 +18,7 @@ layout (std140, binding = 0) uniform FrameUniform {
     int is_wireframe_enabled;
 } frame;
 
-uniform sampler2D texture0;
+layout (binding = 1) uniform sampler2D texture0;
 
 const vec3 ambient_factor = vec3(0.4);
 
