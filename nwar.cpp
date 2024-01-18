@@ -137,13 +137,12 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Army of soldiers through instancing
-    // TODO: Snapping to terrain
     // TODO: Movement
-    // TODO: Nice rendering (lighting, grass material, cloth material?)
     // TODO: Animation
+    // TODO: Nice rendering (lighting, grass material, cloth material?)
+    // TODO: Make it faster
     // TODO: Finish OpenGL tutorial
     // TODO: Finish Vulkan tutorial
-    // TODO: Vulkan
+    // TODO: Convert to Vulkan
     return 0;
 }
