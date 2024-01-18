@@ -20,6 +20,7 @@ private:
     const NglVertexArray mVao;
     const NglBuffer mVertexBuffer;
     const NglBuffer mIndexBuffer;
-    const NglTexture mTexture;
+    const NglTexture mTerrainTexture;
+    const NglTexture mSoldierTexture;
     GLsizei mIndexCount;
 };

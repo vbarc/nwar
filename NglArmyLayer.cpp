@@ -18,7 +18,7 @@ constexpr int kRegimentCount = 4;
 constexpr GLsizei kInstanceCount = kUnitSize.x * kUnitSize.y * kUnitCount.x * kUnitCount.y * kRegimentCount;
 constexpr float kModelScale = 0.01f;
 
-NglArmyLayer::NglArmyLayer(const NglTerrainGeometry&) {
+NglArmyLayer::NglArmyLayer(const NglTerrainGeometry& terrainGeometry) {
     // GLTF model
     const char* path = "soldier.glb";
     Assimp::Importer importer;
@@ -57,7 +57,6 @@ NglArmyLayer::NglArmyLayer(const NglTerrainGeometry&) {
     // Rebase to y = 0
     for (NglVertex& vertex : soldierVertices) {
         vertex.position.y -= bottom;
-        vertex.position.y += 0.5f;
     }
 
     // VAO
@@ -102,7 +101,23 @@ NglArmyLayer::NglArmyLayer(const NglTerrainGeometry&) {
     glVertexArrayElementBuffer(mVao, mIndexBuffer);
     NGL_CHECK_ERRORS;
 
-    // Texture
+    // Terrain texture
+    const std::vector<float>& terrainHeights = terrainGeometry.heights();
+    int terrainWidth = terrainGeometry.width();
+    int terrainDepth = terrainGeometry.depth();
+    glTextureParameteri(mTerrainTexture, GL_TEXTURE_MAX_LEVEL, 0);
+    NGL_CHECK_ERRORS;
+    glTextureParameteri(mTerrainTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    NGL_CHECK_ERRORS;
+    glTextureParameteri(mTerrainTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    NGL_CHECK_ERRORS;
+    glTextureStorage2D(mTerrainTexture, 1, GL_R32F, terrainWidth, terrainDepth);
+    NGL_CHECK_ERRORS;
+    glTextureSubImage2D(mTerrainTexture, 0, 0, 0, terrainWidth, terrainDepth, GL_RED, GL_FLOAT, terrainHeights.data());
+    NGL_CHECK_ERRORS;
+    mTerrainTexture.bind(0);
+
+    // Soldier texture
     NGL_ASSERT(scene->mNumMaterials > 0);
     const aiMaterial* material = scene->mMaterials[0];
     NGL_LOGI("Soldier material: %s", material->GetName().C_Str());
@@ -117,7 +132,7 @@ NglArmyLayer::NglArmyLayer(const NglTerrainGeometry&) {
     NGL_ASSERT(aiTexture->pcData);
     NGL_ASSERT(aiTexture->mHeight == 0);
     NGL_ASSERT(aiTexture->mWidth > 0);
-    mTexture.load(aiTexture->pcData, aiTexture->mWidth, "Soldier diffuse texture 0");
+    mSoldierTexture.load(aiTexture->pcData, aiTexture->mWidth, "Soldier diffuse texture 0");
 
     glBindVertexArray(0);
     NGL_CHECK_ERRORS;
@@ -128,7 +143,7 @@ NglArmyLayer::~NglArmyLayer() {}
 void NglArmyLayer::draw() {
     glBindVertexArray(mVao);
     NGL_CHECK_ERRORS;
-    mTexture.bind(1);
+    mSoldierTexture.bind(1);
     glDrawElementsInstancedBaseInstance(GL_TRIANGLES, mIndexCount, GL_UNSIGNED_INT, 0, kInstanceCount, 1);
     NGL_CHECK_ERRORS;
 }

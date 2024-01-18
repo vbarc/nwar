@@ -21,6 +21,10 @@ NglTexture::~NglTexture() {
     NGL_CHECK_ERRORS;
 }
 
+NglTexture::operator GLuint() const {
+    return mName;
+}
+
 void NglTexture::load(const char* path) const {
     int width;
     int height;
@@ -46,8 +50,6 @@ void NglTexture::load(void* pixels, int width, int height, const char* label) co
     glTextureParameteri(mName, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     NGL_CHECK_ERRORS;
     glTextureStorage2D(mName, 1, GL_RGB8, width, height);
-    NGL_CHECK_ERRORS;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     NGL_CHECK_ERRORS;
     glTextureSubImage2D(mName, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
     NGL_CHECK_ERRORS;

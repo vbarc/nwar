@@ -19,14 +19,10 @@ layout (std140, binding = 0) uniform FrameUniform {
     int is_wireframe_enabled;
 } frame;
 
-const ivec4 terrain_dim = ivec4(101, 1, 101, 1);
+layout (binding = 0) uniform sampler2D terrainTexture;
 
-layout (std140, binding = 1) uniform TerrainUniform {
-    vec4 min;
-    vec4 max;
-    vec4 interval;
-    vec4 y[terrain_dim.x * terrain_dim.z / 4];
-} terrain;
+const vec2 terrain_min = vec2(-6);
+const vec2 terrain_max = vec2(6);
 
 const ivec2 unit_size = ivec2(12, 12);
 const ivec2 regiment_size = ivec2(3, 5);
@@ -46,34 +42,13 @@ const vec3 light_position = vec3(-1100, 1200, 1000);
 const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
 
-float terrain_y(int i, int j) {
-    return i * 0.1 + 1;
-    int index = j * terrain_dim.x + i;
-    vec4 v = terrain.y[index / 4];
-    switch (index % 4) {
-        case 0: return v.x;
-        case 1: return v.y;
-        case 2: return v.z;
-        case 3: return v.w;
-    }
-}
-
 float interpolate_y(float x, float z) {
-    if (x < terrain.min.x || x > terrain.max.x || z < terrain.min.z || z > terrain.max.z) {
+    if (x < terrain_min.x || x > terrain_max.x || z < terrain_min.y || z > terrain_max.y) {
         return 0;
     }
-    int i = int(x / terrain.interval.x);
-    int j = int(z / terrain.interval.z);
-    float y00 = terrain_y(i, j);
-    float y01 = terrain_y(i + 1, j);
-    float y10 = terrain_y(i, j + 1);
-    float y11 = terrain_y(i + 1, j + 1);
-    float px = fract(x / terrain.interval.x);
-    float pz = fract(z / terrain.interval.z);
-    float y0 = mix(y00, y10, pz);
-    float y1 = mix(y01, y11, pz);
-    float y = mix(y0, y1, px);
-    return y;
+    vec2 xz = vec2(x, z);
+    xz = (xz - terrain_min) / (terrain_max - terrain_min);
+    return texture(terrainTexture, xz).r;
 }
 
 void main() {

@@ -18,12 +18,12 @@ layout (std140, binding = 0) uniform FrameUniform {
     int is_wireframe_enabled;
 } frame;
 
-layout (binding = 1) uniform sampler2D texture0;
+layout (binding = 1) uniform sampler2D colorTexture;
 
 const vec3 ambient_factor = vec3(0.4);
 
 void main() {
-    vec4 color = texture(texture0, fs_in.uv);
+    vec4 color = texture(colorTexture, fs_in.uv);
     color = color * vec4(fs_in.diffuse_factor + ambient_factor, 1) + vec4(fs_in.specular_component, 1);
     if (frame.is_wireframe_enabled != 0) {
         vec3 edge_factor = smoothstep(vec3(0.0), fwidth(fs_in.barycoords), fs_in.barycoords);

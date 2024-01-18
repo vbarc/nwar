@@ -43,6 +43,7 @@ NglTerrainGeometry::NglTerrainGeometry() {
     }
 
     mVertices.reserve((kGranularity + 1) * (kGranularity + 1));
+    mHeights.reserve((kGranularity + 1) * (kGranularity + 1));
     for (int j = 0; j <= kGranularity; j++) {
         for (int i = 0; i <= kGranularity; i++) {
             float x = kMinX + (kMaxX - kMinX) / kGranularity * i;
@@ -63,6 +64,8 @@ NglTerrainGeometry::NglTerrainGeometry() {
             vertex.position = vec3(x, y, z);
             vertex.uv = vec2(0);
             mVertices.push_back(vertex);
+
+            mHeights.push_back(y);
         }
     }
 
@@ -104,12 +107,24 @@ NglTerrainGeometry::NglTerrainGeometry() {
 
 NglTerrainGeometry::~NglTerrainGeometry() {}
 
+int NglTerrainGeometry::width() const {
+    return kGranularity + 1;
+}
+
+int NglTerrainGeometry::depth() const {
+    return kGranularity + 1;
+}
+
 const std::vector<NglVertex>& NglTerrainGeometry::vertices() const {
     return mVertices;
 }
 
 const std::vector<uint32_t>& NglTerrainGeometry::indices() const {
     return mIndices;
+}
+
+const std::vector<float>& NglTerrainGeometry::heights() const {
+    return mHeights;
 }
 
 int index(int i, int j) {
