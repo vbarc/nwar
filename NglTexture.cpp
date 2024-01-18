@@ -58,6 +58,6 @@ void NglTexture::load(void* pixels, int width, int height, const char* label) co
 }
 
 void NglTexture::bind(GLuint unit) const {
-    glBindTextures(unit, 1, &mName);
+    glBindTextureUnit(unit, mName);
     NGL_CHECK_ERRORS;
 }
