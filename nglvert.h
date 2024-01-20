@@ -23,6 +23,13 @@ layout (binding = 0) uniform sampler2D terrainTexture;
 
 const vec2 terrain_min = vec2(-6);
 const vec2 terrain_max = vec2(6);
+const vec2 path[] = {
+    vec2(6, -3),
+    vec2(3, -4),
+    vec2(-2, 2),
+    vec2(-6, 3),
+};
+float len = length(path[3] - path[0]) * 1.25;
 
 const ivec2 unit_size = ivec2(12, 12);
 const ivec2 regiment_size = ivec2(3, 5);
@@ -41,6 +48,17 @@ const vec2 regiment_psize = regiment_size * unit_distance - unit_padding;
 const vec3 light_position = vec3(-1100, 1200, 1000);
 const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
+
+vec2 interpolate_bezier(float t, out vec2 dxy) {
+    float it = 1 - t;
+    float t2 = t * t;
+    float t3 = t2 * t;
+    float it2 = it * it;
+    float it3 = it2 * it;
+    vec2 result = it3 * path[0] + 3 * it2 * t * path[1] + 3 * it * t2 * path[2] + t3 * path[3];
+    dxy = 3 * it2 * (path[1] - path[0]) + 6 * it * t * (path[2] - path[1]) + 3 * t2 * (path[3] - path[2]);
+    return result;
+}
 
 float interpolate_y(float x, float z) {
     if (x < terrain_min.x || x > terrain_max.x || z < terrain_min.y || z > terrain_max.y) {
@@ -70,14 +88,28 @@ void main() {
         int in_unit_i = index % unit_size.x;
         int in_unit_j = index / unit_size.x;
 
-        float x = unit_i * unit_distance.x + in_unit_i * in_unit_distance.x;
-        float z = unit_j * unit_distance.y + in_unit_j * in_unit_distance.y + regiment_index * regiment_distance;
-        x = x - regiment_psize.x / 2;
-        z = -z + regiment_distance * regiment_count / 2;
 
-        float y = interpolate_y(x, z);
+        float t_offset = regiment_index * regiment_distance + unit_j * unit_distance.y + in_unit_j * in_unit_distance.y;
+        float t = 1 - t_offset / len;
 
-        position = in_position + vec3(x, y, z);
+        vec2 dxz;
+        vec2 xz = interpolate_bezier(t, dxz);
+
+        vec2 path_dir = normalize(dxz);
+        vec2 ort_dir = vec2(path_dir.y, -path_dir.x);
+
+        float ort_offset = unit_i * unit_distance.x + in_unit_i * in_unit_distance.x - regiment_psize.x / 2;
+        xz = xz + ort_dir * ort_offset;
+
+
+        float y = interpolate_y(xz.x, xz.y);
+
+        mat3 path_orientation = mat3(
+            path_dir.y, 0, -path_dir.x,
+            0, 1, 0,
+            path_dir.x, 0, path_dir.y);
+
+        position = path_orientation * in_position + vec3(xz.x, y, xz.y);
     }
 
     vec3 light_vector = normalize(light_position - position);

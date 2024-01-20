@@ -14,7 +14,7 @@
 
 constexpr glm::ivec2 kUnitSize = glm::ivec2(12, 12);
 constexpr glm::ivec2 kUnitCount = glm::ivec2(3, 5);
-constexpr int kRegimentCount = 4;
+constexpr int kRegimentCount = 5;
 constexpr GLsizei kInstanceCount = kUnitSize.x * kUnitSize.y * kUnitCount.x * kUnitCount.y * kRegimentCount;
 constexpr float kModelScale = 0.01f;
 
