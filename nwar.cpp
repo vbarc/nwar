@@ -139,7 +139,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Mini-movements
     // TODO: Music
     // TODO: Nicer grass rendering, texture
     // TODO: Nicer cloth rendering, rexture, roughness

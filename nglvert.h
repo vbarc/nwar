@@ -52,7 +52,7 @@ float t_speed = speed / len;
 float period = (1 + army_length / len) / t_speed;
 float time0 = 0.2 * period;
 
-float step_period = 0.67;
+float two_step_period = 0.67 * 2;
 float phase_period = period / 50;
 
 const vec3 light_position = vec3(-1100, 1200, 1000);
@@ -128,9 +128,9 @@ void main() {
 
         float random_step_phase = ((random_number >> 5) & 1023) / 1024.0;
         float random_step_offset = sin(random_step_phase * pi_x2) * 0.25;
-        float step_t = fract(effective_time / step_period + random_step_offset);
-        step_t = step_t * 2 - 1;
-        float step_y = (1 - step_t * step_t) * 0.003;
+        float two_step_t = fract(effective_time / two_step_period + random_step_offset);
+        float step_t = fract(two_step_t * 2);
+        float step_y = sin(step_t * pi) * 0.003;
         y = y + step_y;
 
         mat3 path_orientation = mat3(
@@ -138,10 +138,19 @@ void main() {
             0, 1, 0,
             path_dir.x, 0, path_dir.y);
 
+        float theta = sin(two_step_t * pi_x2) * 0.03;
+        float sin_theta = sin(theta);
+        float cos_theta = cos(theta);
+        mat3 swing_orientation = mat3(
+            cos_theta, sin_theta, 0,
+            -sin_theta, cos_theta, 0,
+            0, 0, 1
+        );
+
         float y_scale = (random_number & 63) / 448.0;
         vec3 scale = vec3(1, 1 + y_scale, 1);
 
-        position = path_orientation * (scale * in_position) + vec3(xz.x, y, xz.y);
+        position = path_orientation * swing_orientation * (scale * in_position) + vec3(xz.x, y, xz.y);
     }
 
     vec3 light_vector = normalize(light_position - position);
