@@ -52,6 +52,8 @@ float t_speed = speed / len;
 float period = (1 + army_length / len) / t_speed;
 float time0 = 0.2 * period;
 
+float step_period = 0.67;
+
 const vec3 light_position = vec3(-1100, 1200, 1000);
 const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
@@ -97,7 +99,8 @@ void main() {
 
 
         float t_offset = regiment_index * regiment_distance + unit_j * unit_distance.y + in_unit_j * in_unit_distance.y;
-        float t = -t_offset / len + t_speed * mod(time0 + frame.time, period);
+        float effective_time = time0 + frame.time;
+        float t = -t_offset / len + t_speed * mod(effective_time, period);
 
         vec2 dxz;
         vec2 xz = interpolate_bezier(t, dxz);
@@ -108,15 +111,20 @@ void main() {
         float ort_offset = unit_i * unit_distance.x + in_unit_i * in_unit_distance.x - regiment_psize.x / 2;
         xz = xz + ort_dir * ort_offset;
 
+        uint random_number = gl_InstanceID * 1103515245 + 12345;
 
         float y = interpolate_y(xz.x, xz.y);
+        float step_t = fract(effective_time / step_period);
+        step_t = step_t * 2 - 1;
+        float step_y = (1 - step_t * step_t) * 0.003;
+        y = y + step_y;
 
         mat3 path_orientation = mat3(
             path_dir.y, 0, -path_dir.x,
             0, 1, 0,
             path_dir.x, 0, path_dir.y);
 
-        float y_scale = ((gl_InstanceID * 1103515245 + 12345) & 63) / 450.0;
+        float y_scale = (random_number & 63) / 448.0;
         vec3 scale = vec3(1, 1 + y_scale, 1);
 
         position = path_orientation * (scale * in_position) + vec3(xz.x, y, xz.y);

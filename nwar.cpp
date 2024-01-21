@@ -139,10 +139,11 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Movements
+    // TODO: Randomize x,z slightly
+    // TODO: Mini-movements
     // TODO: Music
-    // TODO: Grass texture?
-    // TODO: Nice rendering (lighting, grass material, cloth material?)
+    // TODO: Nicer grass rendering, texture
+    // TODO: Nicer cloth rendering, rexture, roughness
     // TODO: Make it faster
     // TODO: Finish OpenGL tutorial
     // TODO: Finish Vulkan tutorial
