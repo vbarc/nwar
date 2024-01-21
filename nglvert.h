@@ -53,10 +53,14 @@ float period = (1 + army_length / len) / t_speed;
 float time0 = 0.2 * period;
 
 float step_period = 0.67;
+float phase_period = period / 50;
 
 const vec3 light_position = vec3(-1100, 1200, 1000);
 const vec3 specular_k = vec3(0.1);
 const float specular_power = 48;
+
+const float pi = 3.14159265;
+const float pi_x2 = 2 * pi;
 
 vec2 interpolate_bezier(float t, out vec2 dxy) {
     float it = 1 - t;
@@ -112,10 +116,12 @@ void main() {
         xz = xz + ort_dir * ort_offset;
 
         uint random_number = gl_InstanceID * 1103515245 + 12345;
-        vec2 random_xz_offset = vec2(
-            ((random_number & 1023) / 1024.0 - 0.5) / 100,
-            (((random_number >> 10) & 1023) / 1024.0 - 0.5) / 100
-        );
+
+        float phase = fract(effective_time / phase_period);
+        vec2 random_phase = vec2(random_number & 1023, ((random_number >> 10) & 1023)) / 1024.0;
+        vec2 effective_phase = (vec2(phase) + random_phase) * pi_x2;
+
+        vec2 random_xz_offset = sin(effective_phase) / 300;
         xz = xz + random_xz_offset;
 
         float y = interpolate_y(xz.x, xz.y);
