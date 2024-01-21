@@ -139,7 +139,6 @@ int main(void) {
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Randomize x,z slightly
     // TODO: Mini-movements
     // TODO: Music
     // TODO: Nicer grass rendering, texture

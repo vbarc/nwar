@@ -112,6 +112,11 @@ void main() {
         xz = xz + ort_dir * ort_offset;
 
         uint random_number = gl_InstanceID * 1103515245 + 12345;
+        vec2 random_xz_offset = vec2(
+            ((random_number & 1023) / 1024.0 - 0.5) / 100,
+            (((random_number >> 10) & 1023) / 1024.0 - 0.5) / 100
+        );
+        xz = xz + random_xz_offset;
 
         float y = interpolate_y(xz.x, xz.y);
         float step_t = fract(effective_time / step_period);
