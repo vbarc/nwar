@@ -126,7 +126,7 @@ void main() {
 
         float y = interpolate_y(xz.x, xz.y);
 
-        float random_step_phase = ((random_number >> 20) & 1023) / 1024.0;
+        float random_step_phase = ((random_number >> 5) & 1023) / 1024.0;
         float random_step_offset = sin(random_step_phase * pi_x2) * 0.25;
         float step_t = fract(effective_time / step_period + random_step_offset);
         step_t = step_t * 2 - 1;
