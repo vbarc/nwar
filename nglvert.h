@@ -116,7 +116,10 @@ void main() {
             0, 1, 0,
             path_dir.x, 0, path_dir.y);
 
-        position = path_orientation * in_position + vec3(xz.x, y, xz.y);
+        float y_scale = ((gl_InstanceID * 1103515245 + 12345) & 63) / 450.0;
+        vec3 scale = vec3(1, 1 + y_scale, 1);
+
+        position = path_orientation * (scale * in_position) + vec3(xz.x, y, xz.y);
     }
 
     vec3 light_vector = normalize(light_position - position);
