@@ -15,6 +15,7 @@ layout (location = 0) out vec4 out_color;
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
     mat4 projection_matrix;
+    float time;
     int is_wireframe_enabled;
 } frame;
 

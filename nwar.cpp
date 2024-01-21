@@ -21,6 +21,7 @@ using glm::vec3;
 struct FrameUniform {
     mat4 model_view_matrix;
     mat4 projection_matrix;
+    float time;
     int32_t is_wireframe_enabled;
 };
 
@@ -67,6 +68,7 @@ void doMain(GLFWwindow* window) {
         // FrameUniform
         frameUniform.model_view_matrix = gCamera.getModelViewMatrix();
         frameUniform.projection_matrix = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
+        frameUniform.time = static_cast<float>(glfwGetTime());
         frameUniform.is_wireframe_enabled = gIsWireFrameEnabled ? 1 : 0;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 

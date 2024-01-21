@@ -16,6 +16,7 @@ out VS_OUT {
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
     mat4 projection_matrix;
+    float time;
     int is_wireframe_enabled;
 } frame;
 
@@ -44,6 +45,12 @@ const vec2 unit_distance = unit_size * in_unit_distance + unit_padding;;
 const float regiment_padding = 0.2;
 const float regiment_distance = regiment_size.y * unit_distance.y + regiment_padding;
 const vec2 regiment_psize = regiment_size * unit_distance - unit_padding;
+const float army_length = regiment_distance * regiment_count;
+
+float speed = regiment_distance / 90;
+float t_speed = speed / len;
+float period = (1 + army_length / len) / t_speed;
+float time0 = 0.2 * period;
 
 const vec3 light_position = vec3(-1100, 1200, 1000);
 const vec3 specular_k = vec3(0.1);
@@ -90,7 +97,7 @@ void main() {
 
 
         float t_offset = regiment_index * regiment_distance + unit_j * unit_distance.y + in_unit_j * in_unit_distance.y;
-        float t = 1 - t_offset / len;
+        float t = -t_offset / len + t_speed * mod(time0 + frame.time, period);
 
         vec2 dxz;
         vec2 xz = interpolate_bezier(t, dxz);
