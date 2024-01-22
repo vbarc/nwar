@@ -138,17 +138,12 @@ int main(void) {
     nglEnableDebugIfNecessary();
 
     SoLoud::Soloud soloud;
-    SoLoud::Wav melody;
-    SoLoud::Wav marching;
+    SoLoud::Wav sound;
 
     soloud.init();
-    melody.load("melody.mp3");
-    marching.load("marching.mp3");
-    int melodyHandle = soloud.play(melody, 0.15f);
-    soloud.setLooping(melodyHandle, true);
-    int marchingHandle = soloud.play(marching, 0.1f);
-    soloud.setRelativePlaySpeed(marchingHandle, 1.178f);
-    soloud.setLooping(marchingHandle, true);
+    sound.load("sound.mp3");
+    int soundHandle = soloud.play(sound, 0.15f);
+    soloud.setLooping(soundHandle, true);
 
     doMain(window);
 
