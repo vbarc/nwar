@@ -5,6 +5,8 @@ VisualStudioVersion = 17.6.33712.159
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nwar", "nwar.vcxproj", "{F209BD49-3D26-4319-A94E-86482769C86D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soloud", "soloud\soloud.vcxproj", "{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{F209BD49-3D26-4319-A94E-86482769C86D}.Release|x64.Build.0 = Release|x64
 		{F209BD49-3D26-4319-A94E-86482769C86D}.Release|x86.ActiveCfg = Release|Win32
 		{F209BD49-3D26-4319-A94E-86482769C86D}.Release|x86.Build.0 = Release|Win32
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Debug|x64.ActiveCfg = Debug|x64
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Debug|x64.Build.0 = Debug|x64
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Debug|x86.ActiveCfg = Debug|Win32
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Debug|x86.Build.0 = Debug|Win32
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Release|x64.ActiveCfg = Release|x64
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Release|x64.Build.0 = Release|x64
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Release|x86.ActiveCfg = Release|Win32
+		{81E2FFB0-346E-4C73-9012-CE16BD1E1A3E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

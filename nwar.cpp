@@ -1,6 +1,9 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
+#include <soloud.h>
+#include <soloud_wav.h>
+
 #include "NglArmyLayer.h"
 #include "NglBuffer.h"
 #include "NglCamera.h"
@@ -134,17 +137,32 @@ int main(void) {
 
     nglEnableDebugIfNecessary();
 
+    SoLoud::Soloud soloud;
+    SoLoud::Wav melody;
+    SoLoud::Wav marching;
+
+    soloud.init();
+    melody.load("melody.mp3");
+    marching.load("marching.mp3");
+    int melodyHandle = soloud.play(melody, 0.15f);
+    soloud.setLooping(melodyHandle, true);
+    int marchingHandle = soloud.play(marching, 0.1f);
+    soloud.setRelativePlaySpeed(marchingHandle, 1.178f);
+    soloud.setLooping(marchingHandle, true);
+
     doMain(window);
+
+    soloud.deinit();
 
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    // TODO: Music
+    // TODO: Finish OpenGL tutorial
     // TODO: Nicer grass rendering, texture
     // TODO: Nicer cloth rendering, rexture, roughness
-    // TODO: Make it faster
-    // TODO: Finish OpenGL tutorial
+    // TODO: Make it faster    
     // TODO: Finish Vulkan tutorial
     // TODO: Convert to Vulkan
+    // TODO: D-day
     return 0;
 }

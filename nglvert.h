@@ -52,7 +52,7 @@ float t_speed = speed / len;
 float period = (1 + army_length / len) / t_speed;
 float time0 = 0.2 * period;
 
-float two_step_period = 0.67 * 2;
+float two_step_period = 0.5 * 2;
 float phase_period = period / 50;
 
 const vec3 light_position = vec3(-1100, 1200, 1000);

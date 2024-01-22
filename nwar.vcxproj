@@ -112,9 +112,9 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WITH_MINIAUDIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>lib\assimp\include;lib\eigen-3.4.0;lib\stb;lib\glm;glad\include;lib\glfw-3.3.9.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>soloud\soloud20200207\include;lib\assimp\include;lib\eigen-3.4.0;lib\stb;lib\glm;glad\include;lib\glfw-3.3.9.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4201;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -131,9 +131,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WITH_MINIAUDIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>lib\assimp\include;lib\eigen-3.4.0;lib\stb;lib\glm;glad\include;lib\glfw-3.3.9.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>soloud\soloud20200207\include;lib\assimp\include;lib\eigen-3.4.0;lib\stb;lib\glm;glad\include;lib\glfw-3.3.9.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <DisableSpecificWarnings>4201;4127;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -187,6 +187,11 @@
     <ClInclude Include="nglvert.h" />
     <ClInclude Include="NglVertex.h" />
     <ClInclude Include="NglVertexArray.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="soloud\soloud.vcxproj">
+      <Project>{81e2ffb0-346e-4c73-9012-ce16bd1e1a3e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
