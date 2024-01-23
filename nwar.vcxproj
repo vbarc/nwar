@@ -156,6 +156,7 @@
     <ClCompile Include="NglDisplacementMap.cpp" />
     <ClCompile Include="nglerr.cpp" />
     <ClCompile Include="NglProgram.cpp" />
+    <ClCompile Include="NglSoundGenerator.cpp" />
     <ClCompile Include="NglTerrainGeometry.cpp" />
     <ClCompile Include="NglTerrainLayer.cpp" />
     <ClCompile Include="NglTexture.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="nglgl.h" />
     <ClInclude Include="ngllog.h" />
     <ClInclude Include="NglProgram.h" />
+    <ClInclude Include="NglSoundGenerator.h" />
     <ClInclude Include="NglTerrainGeometry.h" />
     <ClInclude Include="NglTerrainLayer.h" />
     <ClInclude Include="NglTexture.h" />

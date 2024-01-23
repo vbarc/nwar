@@ -2,12 +2,12 @@
 #include <glm/glm.hpp>
 
 #include <soloud.h>
-#include <soloud_wav.h>
 
 #include "NglArmyLayer.h"
 #include "NglBuffer.h"
 #include "NglCamera.h"
 #include "NglProgram.h"
+#include "NglSoundGenerator.h"
 #include "NglTerrainGeometry.h"
 #include "NglTerrainLayer.h"
 #include "ngldbg.h"
@@ -137,17 +137,9 @@ int main(void) {
 
     nglEnableDebugIfNecessary();
 
-    SoLoud::Soloud soloud;
-    SoLoud::Wav sound;
-
-    soloud.init();
-    sound.load("sound.mp3");
-    int soundHandle = soloud.play(sound, 0.15f);
-    soloud.setLooping(soundHandle, true);
+    NglSoundGenerator soundGenerator;
 
     doMain(window);
-
-    soloud.deinit();
 
     glfwDestroyWindow(window);
     glfwTerminate();
