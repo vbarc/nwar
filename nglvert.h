@@ -58,7 +58,7 @@ float time0 = 0.2 * period;
 float two_step_period = 0.5 * 2;
 float phase_period = period / 50;
 
-const vec3 light_position = vec3(-1100, 1200, 1000);
+const vec3 light_vector = normalize(vec3(-1100, 1200, 1000));
 const vec3 ambient_factor = vec3(0.4);
 const vec3 specular_factor = vec3(0.1);
 const float specular_power = 48;
@@ -152,8 +152,6 @@ void main() {
 
         position = path_orientation * swing_orientation * (scale * in_position) + vec3(xz.x, y, xz.y);
     }
-
-    vec3 light_vector = normalize(light_position - position);
 
     vec4 position_in_view = frame.model_view_matrix * vec4(position, 1);
     vec3 normal_in_view = mat3(frame.model_view_matrix) * in_normal;
