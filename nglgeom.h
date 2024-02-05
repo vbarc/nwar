@@ -8,14 +8,14 @@ layout (triangle_strip, max_vertices = 3) out;
 
 in VS_OUT {
     vec2 uv;
-    vec3 diffuse_factor;
-    vec3 specular_component;
+    vec3 color_factor;
+    vec3 color_offset;
 } gs_in[];
 
 out GS_OUT {
     vec2 uv;
-    vec3 diffuse_factor;
-    vec3 specular_component;
+    vec3 color_factor;
+    vec3 color_offset;
     vec3 barycoords;
 } gs_out;
 
@@ -29,8 +29,8 @@ void main() {
     for (int i = 0; i < 3; i++) {
         gl_Position = gl_in[i].gl_Position;
         gs_out.uv = gs_in[i].uv;
-        gs_out.diffuse_factor = gs_in[i].diffuse_factor;
-        gs_out.specular_component = gs_in[i].specular_component;
+        gs_out.color_factor = gs_in[i].color_factor;
+        gs_out.color_offset = gs_in[i].color_offset;
         gs_out.barycoords = reference_barycoords[i];
         EmitVertex();
     }

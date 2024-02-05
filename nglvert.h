@@ -3,16 +3,6 @@
 static const char* gVertexShaderSrc = R"(
 #version 460 core
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec2 in_uv;
-
-out VS_OUT {
-    vec2 uv;
-    vec3 diffuse_factor;
-    vec3 specular_component;
-} vs_out;
-
 layout (std140, binding = 0) uniform FrameUniform {
     mat4 model_view_matrix;
     mat4 projection_matrix;
@@ -20,7 +10,20 @@ layout (std140, binding = 0) uniform FrameUniform {
     int is_wireframe_enabled;
 } frame;
 
-layout (binding = 0) uniform sampler2D terrainTexture;
+layout (binding = 0) uniform sampler2D terrain_texture;
+
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec2 in_uv;
+
+out VS_OUT {
+    vec2 uv;
+    vec3 color_factor;
+    vec3 color_offset;
+} vs_out;
+
+const float pi = 3.14159265;
+const float pi_x2 = 2 * pi;
 
 const vec2 terrain_min = vec2(-6);
 const vec2 terrain_max = vec2(6);
@@ -30,7 +33,7 @@ const vec2 path[] = {
     vec2(-2, 2),
     vec2(-6, 3),
 };
-float len = length(path[3] - path[0]) * 1.25;
+const float len = length(path[3] - path[0]) * 1.25;
 
 const ivec2 unit_size = ivec2(12, 12);
 const ivec2 regiment_size = ivec2(3, 5);
@@ -56,16 +59,14 @@ float two_step_period = 0.5 * 2;
 float phase_period = period / 50;
 
 const vec3 light_position = vec3(-1100, 1200, 1000);
-const vec3 specular_k = vec3(0.1);
+const vec3 ambient_factor = vec3(0.4);
+const vec3 specular_factor = vec3(0.1);
 const float specular_power = 48;
 
-const float pi = 3.14159265;
-const float pi_x2 = 2 * pi;
-
-vec2 interpolate_bezier(float t, out vec2 dxy) {
-    float it = 1 - t;
+vec2 interpolate_along_path(float t, out vec2 dxy) {
     float t2 = t * t;
     float t3 = t2 * t;
+    float it = 1 - t;
     float it2 = it * it;
     float it3 = it2 * it;
     vec2 result = it3 * path[0] + 3 * it2 * t * path[1] + 3 * it * t2 * path[2] + t3 * path[3];
@@ -73,13 +74,12 @@ vec2 interpolate_bezier(float t, out vec2 dxy) {
     return result;
 }
 
-float interpolate_y(float x, float z) {
+float interpolate_terrain_height(float x, float z) {
     if (x < terrain_min.x || x > terrain_max.x || z < terrain_min.y || z > terrain_max.y) {
         return 0;
     }
-    vec2 xz = vec2(x, z);
-    xz = (xz - terrain_min) / (terrain_max - terrain_min);
-    return texture(terrainTexture, xz).r;
+    vec2 xz = (vec2(x, z) - terrain_min) / (terrain_max - terrain_min);
+    return texture(terrain_texture, xz).r;
 }
 
 void main() {
@@ -107,7 +107,7 @@ void main() {
         float t = -t_offset / len + t_speed * mod(effective_time, period);
 
         vec2 dxz;
-        vec2 xz = interpolate_bezier(t, dxz);
+        vec2 xz = interpolate_along_path(t, dxz);
 
         vec2 path_dir = normalize(dxz);
         vec2 ort_dir = vec2(path_dir.y, -path_dir.x);
@@ -124,7 +124,7 @@ void main() {
         vec2 random_xz_offset = sin(effective_phase) / 300;
         xz = xz + random_xz_offset;
 
-        float y = interpolate_y(xz.x, xz.y);
+        float y = interpolate_terrain_height(xz.x, xz.y);
 
         float random_step_phase = ((random_number >> 5) & 1023) / 1024.0;
         float random_step_offset = sin(random_step_phase * pi_x2) * 0.25;
@@ -167,11 +167,11 @@ void main() {
     vec3 reflection_vector_in_view = reflect(-light_vector_in_view, normal_in_view);
 
     vec3 diffuse_factor = vec3(max(dot(normal_in_view, light_vector_in_view), 0));
-    vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_k;
+    vec3 specular = pow(max(dot(reflection_vector_in_view, view_vector_in_view), 0), specular_power) * specular_factor;
 
     vs_out.uv = in_uv;
-    vs_out.diffuse_factor = diffuse_factor;
-    vs_out.specular_component = specular;
+    vs_out.color_factor = diffuse_factor + ambient_factor;
+    vs_out.color_offset = specular;
 
     gl_Position = frame.projection_matrix * position_in_view;
 }
