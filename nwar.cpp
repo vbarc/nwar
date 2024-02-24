@@ -86,7 +86,7 @@ void doMain(GLFWwindow* window) {
         double frameCounterWindow = time - frameCounterStartTime;
         if (frameCounterWindow >= 2) {
             int fps = (int)(frameCounter / frameCounterWindow);
-            NGL_LOGE("FPS: %d", fps);
+            NGL_LOGI("FPS: %d", fps);
             frameCounterStartTime = time;
             frameCounter = 0;
         }
