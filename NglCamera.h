@@ -12,7 +12,7 @@ public:
     bool onKeyEvent(int key, int scancode, int action, int mods);
     bool onMouseButtonEvent(GLFWwindow* window, int button, int action, int mods);
     bool onMouseMotionEvent(GLFWwindow* window, double x, double y);
-    void onNextFrame();
+    void onNextFrame(double time);
 
     glm::mat4 getModelViewMatrix() const;
 

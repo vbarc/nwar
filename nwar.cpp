@@ -58,8 +58,12 @@ void doMain(GLFWwindow* window) {
     NglTerrainLayer terrainLayer(terrainGeometry);
     NglArmyLayer armyLayer(terrainGeometry);
 
+    int frameCounter = 0;
+    double frameCounterStartTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(window)) {
-        gCamera.onNextFrame();
+        double time = glfwGetTime();
+        gCamera.onNextFrame(time);
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -71,13 +75,22 @@ void doMain(GLFWwindow* window) {
         // FrameUniform
         frameUniform.model_view_matrix = gCamera.getModelViewMatrix();
         frameUniform.projection_matrix = glm::perspective(45.0f, width / static_cast<float>(height), 0.1f, 1000.0f);
-        frameUniform.time = static_cast<float>(glfwGetTime());
+        frameUniform.time = static_cast<float>(time);
         frameUniform.is_wireframe_enabled = gIsWireFrameEnabled ? 1 : 0;
         glBufferSubData(GL_UNIFORM_BUFFER, 0, frameUniformSize, &frameUniform);
 
         // Layers
         terrainLayer.draw();
         armyLayer.draw();
+
+        double frameCounterWindow = time - frameCounterStartTime;
+        if (frameCounterWindow >= 2) {
+            int fps = (int)(frameCounter / frameCounterWindow);
+            NGL_LOGE("FPS: %d", fps);
+            frameCounterStartTime = time;
+            frameCounter = 0;
+        }
+        frameCounter++;
 
         glfwSwapBuffers(window);
         glfwPollEvents();

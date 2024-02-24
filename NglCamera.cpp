@@ -1,4 +1,5 @@
 #include "NglCamera.h"
+#include "NglCamera.h"
 
 #include <algorithm>
 
@@ -84,8 +85,7 @@ bool NglCamera::onMouseMotionEvent(GLFWwindow* window, double x, double y) {
     return handled;
 }
 
-void NglCamera::onNextFrame() {
-    double time = glfwGetTime();
+void NglCamera::onNextFrame(double time) {
     float timeDeltaSeconds = static_cast<float>(time - mPreviousFrameTime);
     mPreviousFrameTime = time;
 
