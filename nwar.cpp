@@ -162,11 +162,13 @@ int main(void) {
     glfwTerminate();
 
     // TODO: Finish OpenGL tutorial
-    // TODO: Nicer grass rendering, texture
-    // TODO: Nicer cloth rendering, rexture, roughness
-    // TODO: Make it faster    
     // TODO: Finish Vulkan tutorial
     // TODO: Convert to Vulkan
+    // TODO: Gamma correction
+    // TODO: Nicer grass rendering, texture
+    // TODO: Nicer cloth rendering, texture, roughness, cloth look
+    // TODO: Optimize: Simpler or smarter shaders. Example: no wireframe
+    // TODO: Optimize: Clipping
     // TODO: D-day
     return 0;
 }
