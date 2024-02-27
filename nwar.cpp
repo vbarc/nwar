@@ -36,6 +36,10 @@ void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
     glEnable(GL_DEPTH_TEST);
     NGL_CHECK_ERRORS;
+    glEnable(GL_CULL_FACE);
+    NGL_CHECK_ERRORS;
+    glCullFace(GL_BACK);
+    NGL_CHECK_ERRORS;
 
     NglProgram program = NglProgram::Builder()
                                  .setVertexShader(gVertexShaderSrc)

@@ -94,11 +94,11 @@ NglTerrainGeometry::NglTerrainGeometry() {
     for (int j = 0; j < kGranularity; j++) {
         for (int i = 0; i < kGranularity; i++) {
             mIndices.push_back(index(i, j));
-            mIndices.push_back(index(i + 1, j));
             mIndices.push_back(index(i, j + 1));
             mIndices.push_back(index(i + 1, j));
+            mIndices.push_back(index(i + 1, j));
+            mIndices.push_back(index(i, j + 1));
             mIndices.push_back(index(i + 1, j + 1));
-            mIndices.push_back(index(i, j + 1));
         }
     }
 
