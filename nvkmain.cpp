@@ -1,6 +1,7 @@
 #include "nvkmain.h"
 
 #include <cstdlib>
+#include <vector>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -42,6 +43,15 @@ private:
     }
 
     void createInstance() {
+        NGL_LOGI("Available extensions:");
+        uint32_t extensionCount = 0;
+        NVK_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr));
+        std::vector<VkExtensionProperties> extensions(extensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+        for (VkExtensionProperties extension : extensions) {
+            NGL_LOGI("  %s %u", extension.extensionName, extension.specVersion);
+        }
+
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = "N War (VK)";
@@ -56,8 +66,9 @@ private:
             NGL_LOGE("glfwGetRequiredInstanceExtensions() failed");
             abort();
         }
+        NGL_LOGI("Extensions required by GLFW:");
         for (uint32_t i = 0; i < glfwExtensionCount; i++) {
-            NGL_LOGI("glfwExtensions[%u]: %s", i, glfwExtensions[i]);
+            NGL_LOGI("  %s", glfwExtensions[i]);
         }
 
         VkInstanceCreateInfo createInfo{};
