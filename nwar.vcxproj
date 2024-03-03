@@ -162,6 +162,7 @@
     <ClCompile Include="NglTerrainLayer.cpp" />
     <ClCompile Include="NglTexture.cpp" />
     <ClCompile Include="NglVertexArray.cpp" />
+    <ClCompile Include="nvkerr.cpp" />
     <ClCompile Include="nvkmain.cpp" />
     <ClCompile Include="nwar.cpp" />
   </ItemGroup>
@@ -192,6 +193,7 @@
     <ClInclude Include="nglvert.h" />
     <ClInclude Include="NglVertex.h" />
     <ClInclude Include="NglVertexArray.h" />
+    <ClInclude Include="nvkerr.h" />
     <ClInclude Include="nvkmain.h" />
   </ItemGroup>
   <ItemGroup>

@@ -66,6 +66,9 @@
     <ClCompile Include="nvkmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nvkerr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -139,6 +142,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nvkmain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvkerr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

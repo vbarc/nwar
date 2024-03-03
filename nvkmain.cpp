@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include "ngllog.h"
+#include "nvkerr.h"
 
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
@@ -65,11 +66,7 @@ private:
         createInfo.enabledExtensionCount = glfwExtensionCount;
         createInfo.ppEnabledExtensionNames = glfwExtensions;
 
-        VkResult result = vkCreateInstance(&createInfo, nullptr, &mInstance);
-        if (result != VK_SUCCESS) {
-            NGL_LOGE("vkCreateInstance");
-            abort();
-        }
+        NVK_CHECK(vkCreateInstance(&createInfo, nullptr, &mInstance));
         NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));
     }
 
