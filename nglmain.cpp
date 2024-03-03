@@ -115,7 +115,7 @@ int nglMain() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     nglPrepareDebugIfNecessary();
 
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War (OpenGL)", nullptr, nullptr);
     if (!window) {
         NGL_LOGE("glfwCreateWindow() failed");
         glfwTerminate();

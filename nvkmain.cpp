@@ -3,34 +3,67 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/mat4x4.hpp>
-#include <glm/vec4.hpp>
+#include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 
-int nvkMain() {
-    glfwInit();
+#include "ngllog.h"
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "Vulkan window", nullptr, nullptr);
+constexpr uint32_t kWidth = 1920;
+constexpr uint32_t kHeight = 1080;
 
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-    std::cout << extensionCount << " extensions supported\n";
-
-    glm::mat4 matrix;
-    glm::vec4 vec;
-    auto test = matrix * vec;
-
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+class HelloTriangleApplication {
+public:
+    void run() {
+        initWindow();
+        initVulkan();
+        mainLoop();
+        cleanup();
     }
 
-    glfwDestroyWindow(window);
+private:
+    void initWindow() {
+        if (!glfwInit()) {
+            NGL_LOGE("glfwInit() failed");
+            abort();
+        }
 
-    glfwTerminate();
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    return 0;
+        mWindow = glfwCreateWindow(kWidth, kHeight, "N War (VK)", nullptr, nullptr);
+        if (!mWindow) {
+            NGL_LOGE("glfwCreateWindow() failed");
+            glfwTerminate();
+            abort();
+        }
+    }
+
+    void initVulkan() {}
+
+    void mainLoop() {
+        while (!glfwWindowShouldClose(mWindow)) {
+            glfwPollEvents();
+        }
+    }
+
+    void cleanup() {
+        glfwDestroyWindow(mWindow);
+        glfwTerminate();
+    }
+
+    GLFWwindow* mWindow;
+};
+
+int nvkMain() {
+    HelloTriangleApplication app;
+
+    try {
+        app.run();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
