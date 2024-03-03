@@ -9,8 +9,16 @@
 #include "ngllog.h"
 #include "nvkerr.h"
 
+#define __NVK_DEBUG_ENABLED
+
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
+
+const std::vector<const char*> kLayers = {
+#ifdef __NVK_DEBUG_ENABLED
+        "VK_LAYER_KHRONOS_validation"
+#endif  // __NVK_DEBUG_ENABLED
+};
 
 class HelloTriangleApplication {
 public:
@@ -44,12 +52,22 @@ private:
 
     void createInstance() {
         NGL_LOGI("Available extensions:");
-        uint32_t extensionCount = 0;
+        uint32_t extensionCount;
         NVK_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr));
         std::vector<VkExtensionProperties> extensions(extensionCount);
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
         for (VkExtensionProperties extension : extensions) {
             NGL_LOGI("  %s %u", extension.extensionName, extension.specVersion);
+        }
+
+        NGL_LOGI("Available layers:");
+        uint32_t layerCount;
+        NVK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr));
+        std::vector<VkLayerProperties> layers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
+        for (VkLayerProperties layer : layers) {
+            NGL_LOGI("  %s %u %u %s", layer.layerName, layer.specVersion, layer.implementationVersion,
+                     layer.description);
         }
 
         VkApplicationInfo appInfo{};
@@ -76,6 +94,8 @@ private:
         createInfo.pApplicationInfo = &appInfo;
         createInfo.enabledExtensionCount = glfwExtensionCount;
         createInfo.ppEnabledExtensionNames = glfwExtensions;
+        createInfo.enabledLayerCount = static_cast<uint32_t>(kLayers.size());
+        createInfo.ppEnabledLayerNames = kLayers.data();
 
         NVK_CHECK(vkCreateInstance(&createInfo, nullptr, &mInstance));
         NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));
