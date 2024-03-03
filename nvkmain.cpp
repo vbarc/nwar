@@ -97,6 +97,8 @@ private:
             NGL_LOGI("  %s", requiredLayer);
         }
 
+        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
+
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
@@ -104,6 +106,7 @@ private:
         createInfo.ppEnabledExtensionNames = requiredExtensions.data();
         createInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
         createInfo.ppEnabledLayerNames = requiredLayers.data();
+        createInfo.pNext = nvkPopulateDebugMessengerCreateInfoIfNecessary(&debugMessengerCreateInfo);
 
         NVK_CHECK(vkCreateInstance(&createInfo, nullptr, &mInstance));
         NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));

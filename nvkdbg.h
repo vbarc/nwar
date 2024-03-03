@@ -9,3 +9,6 @@ void nvkAppendDebugLayersIfNecessary(std::vector<const char*>& layers);
 
 void nvkInitDebugIfNecessary(VkInstance instance);
 void nvkTerminateDebugIfNecessary(VkInstance instance);
+
+VkDebugUtilsMessengerCreateInfoEXT* nvkPopulateDebugMessengerCreateInfoIfNecessary(
+        VkDebugUtilsMessengerCreateInfoEXT* createInfo);

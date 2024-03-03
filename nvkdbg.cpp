@@ -96,18 +96,8 @@ void nvkInitDebugIfNecessary(VkInstance instance) {
     }
 #endif  // __NVK_DEBUG
     NGL_ASSERT(sMessenger == VK_NULL_HANDLE);
-
     VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity =
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
-    createInfo.pfnUserCallback = debugCallback;
-
+    NGL_VERIFY(nvkPopulateDebugMessengerCreateInfoIfNecessary(&createInfo));
     NVK_CHECK(createDebugUtilsMessenger(instance, &createInfo, nullptr, &sMessenger));
 }
 
@@ -120,4 +110,23 @@ void nvkTerminateDebugIfNecessary(VkInstance instance) {
     NGL_ASSERT(sMessenger != VK_NULL_HANDLE);
     destroyDebugUtilsMessenger(instance, sMessenger, nullptr);
     sMessenger = VK_NULL_HANDLE;
+}
+
+VkDebugUtilsMessengerCreateInfoEXT* nvkPopulateDebugMessengerCreateInfoIfNecessary(
+        VkDebugUtilsMessengerCreateInfoEXT* createInfo) {
+#ifndef __NVK_DEBUG
+    if (true) {
+        return nullptr;
+    }
+#endif  // __NVK_DEBUG
+    createInfo->sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo->messageSeverity =
+            /*/ VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |*/
+            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo->messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                              VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                              VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT |
+                              VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
+    createInfo->pfnUserCallback = debugCallback;
+    return createInfo;
 }
