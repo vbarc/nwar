@@ -7,18 +7,11 @@
 #include <GLFW/glfw3.h>
 
 #include "ngllog.h"
+#include "nvkdbg.h"
 #include "nvkerr.h"
-
-#define __NVK_DEBUG_ENABLED
 
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
-
-const std::vector<const char*> kLayers = {
-#ifdef __NVK_DEBUG_ENABLED
-        "VK_LAYER_KHRONOS_validation"
-#endif  // __NVK_DEBUG_ENABLED
-};
 
 class HelloTriangleApplication {
 public:
@@ -89,13 +82,27 @@ private:
             NGL_LOGI("  %s", glfwExtensions[i]);
         }
 
+        std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        nvkAppendDebugExtensionsIfNecessary(requiredExtensions);
+        NGL_LOGI("Required extensions:");
+        for (const char* requiredExtension : requiredExtensions) {
+            NGL_LOGI("  %s", requiredExtension);
+        }
+
+        std::vector<const char*> requiredLayers;
+        nvkAppendDebugLayersIfNecessary(requiredLayers);
+        NGL_LOGI("Required layers:");
+        for (const char* requiredLayer : requiredLayers) {
+            NGL_LOGI("  %s", requiredLayer);
+        }
+
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledExtensionCount = glfwExtensionCount;
-        createInfo.ppEnabledExtensionNames = glfwExtensions;
-        createInfo.enabledLayerCount = static_cast<uint32_t>(kLayers.size());
-        createInfo.ppEnabledLayerNames = kLayers.data();
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+        createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
+        createInfo.ppEnabledLayerNames = requiredLayers.data();
 
         NVK_CHECK(vkCreateInstance(&createInfo, nullptr, &mInstance));
         NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));
