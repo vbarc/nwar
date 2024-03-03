@@ -1,11 +1,9 @@
 #include "nvkmain.h"
 
+#include <cstdlib>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
-#include <cstdlib>
-#include <iostream>
-#include <stdexcept>
 
 #include "ngllog.h"
 
@@ -34,12 +32,46 @@ private:
         mWindow = glfwCreateWindow(kWidth, kHeight, "N War (VK)", nullptr, nullptr);
         if (!mWindow) {
             NGL_LOGE("glfwCreateWindow() failed");
-            glfwTerminate();
             abort();
         }
     }
 
-    void initVulkan() {}
+    void initVulkan() {
+        createInstance();
+    }
+
+    void createInstance() {
+        VkApplicationInfo appInfo{};
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pApplicationName = "N War (VK)";
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName = "No Engine";
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion = VK_API_VERSION_1_0;
+
+        uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        if (!mWindow) {
+            NGL_LOGE("glfwGetRequiredInstanceExtensions() failed");
+            abort();
+        }
+        for (uint32_t i = 0; i < glfwExtensionCount; i++) {
+            NGL_LOGI("glfwExtensions[%u]: %s", i, glfwExtensions[i]);
+        }
+
+        VkInstanceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createInfo.pApplicationInfo = &appInfo;
+        createInfo.enabledExtensionCount = glfwExtensionCount;
+        createInfo.ppEnabledExtensionNames = glfwExtensions;
+
+        VkResult result = vkCreateInstance(&createInfo, nullptr, &mInstance);
+        if (result != VK_SUCCESS) {
+            NGL_LOGE("vkCreateInstance");
+            abort();
+        }
+        NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));
+    }
 
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
@@ -48,22 +80,17 @@ private:
     }
 
     void cleanup() {
+        vkDestroyInstance(mInstance, nullptr);
         glfwDestroyWindow(mWindow);
         glfwTerminate();
     }
 
     GLFWwindow* mWindow;
+    VkInstance mInstance;
 };
 
 int nvkMain() {
     HelloTriangleApplication app;
-
-    try {
-        app.run();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    app.run();
+    return 0;
 }
