@@ -1,4 +1,5 @@
 #include "nglmain.h"
+#include "nvkmain.h"
 
 int main() {
     // TODO: Finish Vulkan tutorial
@@ -9,5 +10,5 @@ int main() {
     // TODO: Nicer cloth rendering, texture, roughness, cloth look
     // TODO: Optimize: Simpler or smarter shaders. Example: no wireframe
     // TODO: Optimize: Clipping
-    return nglMain();
+    return nvkMain();
 }
