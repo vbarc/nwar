@@ -19,7 +19,7 @@ public:
         initWindow();
         initVulkan();
         mainLoop();
-        cleanup();
+        terminate();
     }
 
 private:
@@ -41,6 +41,7 @@ private:
 
     void initVulkan() {
         createInstance();
+        nvkInitDebugIfNecessary(mInstance);
     }
 
     void createInstance() {
@@ -114,7 +115,8 @@ private:
         }
     }
 
-    void cleanup() {
+    void terminate() {
+        nvkTerminateDebugIfNecessary(mInstance);
         vkDestroyInstance(mInstance, nullptr);
         glfwDestroyWindow(mWindow);
         glfwTerminate();
