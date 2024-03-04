@@ -1,5 +1,8 @@
 #include "nvkutil.h"
 
+#include <cinttypes>
+#include <string>
+
 #include "ngllog.h"
 
 static const char* deviceTypeToString(VkPhysicalDeviceType type) {
@@ -19,6 +22,20 @@ static const char* deviceTypeToString(VkPhysicalDeviceType type) {
     }
 }
 
+static std::string sampleCountFlagsToString(VkSampleCountFlags flags) {
+    std::string result = "";
+    for (int i = 0; i < 8; i++) {
+        int n = 1 << i;
+        if (flags & n) {
+            if (!result.empty()) {
+                result += ',';
+            }
+            result += std::to_string(n);
+        }
+    }
+    return std::to_string(flags) + " (" + result + ")";
+}
+
 void nvkDumpPhysicalDevices(const std::vector<VkPhysicalDevice>& devices) {
     NGL_LOGI("Physical devices:");
     for (VkPhysicalDevice device : devices) {
@@ -34,7 +51,158 @@ void nvkDumpPhysicalDevices(const std::vector<VkPhysicalDevice>& devices) {
         NGL_LOGI("    deviceID:         x%x", properties.deviceID);
         NGL_LOGI("    deviceType:       %s", deviceTypeToString(properties.deviceType));
         NGL_LOGI("    deviceName:       %s", properties.deviceName);
-        // NGL_LOGI("    limits:           %s", limitsToString(properties.limits));
-        // NGL_LOGI("    sparseProperties: %s", sparcePropertiesToString(properties.sparseProperties));
+
+        const VkPhysicalDeviceLimits& limits = properties.limits;
+        NGL_LOGI("    limits:");
+        NGL_LOGI("      maxImageDimension1D:                             %u", limits.maxImageDimension1D);
+        NGL_LOGI("      maxImageDimension2D:                             %u", limits.maxImageDimension2D);
+        NGL_LOGI("      maxImageDimension3D:                             %u", limits.maxImageDimension3D);
+        NGL_LOGI("      maxImageDimensionCube:                           %u", limits.maxImageDimensionCube);
+        NGL_LOGI("      maxImageArrayLayers:                             %u", limits.maxImageArrayLayers);
+        NGL_LOGI("      maxTexelBufferElements:                          %u", limits.maxTexelBufferElements);
+        NGL_LOGI("      maxUniformBufferRange:                           %u", limits.maxUniformBufferRange);
+        NGL_LOGI("      maxStorageBufferRange:                           %u", limits.maxStorageBufferRange);
+        NGL_LOGI("      maxPushConstantsSize:                            %u", limits.maxPushConstantsSize);
+        NGL_LOGI("      maxMemoryAllocationCount:                        %u", limits.maxMemoryAllocationCount);
+        NGL_LOGI("      maxSamplerAllocationCount:                       %u", limits.maxSamplerAllocationCount);
+        NGL_LOGI("      bufferImageGranularity:                          %" PRIu64, limits.bufferImageGranularity);
+        NGL_LOGI("      sparseAddressSpaceSize:                          %" PRIu64, limits.sparseAddressSpaceSize);
+        NGL_LOGI("      maxBoundDescriptorSets:                          %u", limits.maxBoundDescriptorSets);
+        NGL_LOGI("      maxPerStageDescriptorSamplers:                   %u", limits.maxPerStageDescriptorSamplers);
+        NGL_LOGI("      maxPerStageDescriptorUniformBuffers:             %u",
+                 limits.maxPerStageDescriptorUniformBuffers);
+        NGL_LOGI("      maxPerStageDescriptorStorageBuffers:             %u",
+                 limits.maxPerStageDescriptorStorageBuffers);
+        NGL_LOGI("      maxPerStageDescriptorSampledImages:              %u",
+                 limits.maxPerStageDescriptorSampledImages);
+        NGL_LOGI("      maxPerStageDescriptorStorageImages:              %u",
+                 limits.maxPerStageDescriptorStorageImages);
+        NGL_LOGI("      maxPerStageDescriptorInputAttachments:           %u",
+                 limits.maxPerStageDescriptorInputAttachments);
+        NGL_LOGI("      maxPerStageResources:                            %u", limits.maxPerStageResources);
+        NGL_LOGI("      maxDescriptorSetSamplers:                        %u", limits.maxDescriptorSetSamplers);
+        NGL_LOGI("      maxDescriptorSetUniformBuffers:                  %u", limits.maxDescriptorSetUniformBuffers);
+        NGL_LOGI("      maxDescriptorSetUniformBuffersDynamic:           %u",
+                 limits.maxDescriptorSetUniformBuffersDynamic);
+        NGL_LOGI("      maxDescriptorSetStorageBuffers:                  %u", limits.maxDescriptorSetStorageBuffers);
+        NGL_LOGI("      maxDescriptorSetStorageBuffersDynamic:           %u",
+                 limits.maxDescriptorSetStorageBuffersDynamic);
+        NGL_LOGI("      maxDescriptorSetSampledImages:                   %u", limits.maxDescriptorSetSampledImages);
+        NGL_LOGI("      maxDescriptorSetStorageImages:                   %u", limits.maxDescriptorSetStorageImages);
+        NGL_LOGI("      maxDescriptorSetInputAttachments:                %u", limits.maxDescriptorSetInputAttachments);
+        NGL_LOGI("      maxVertexInputAttributes:                        %u", limits.maxVertexInputAttributes);
+        NGL_LOGI("      maxVertexInputBindings:                          %u", limits.maxVertexInputBindings);
+        NGL_LOGI("      maxVertexInputAttributeOffset:                   %u", limits.maxVertexInputAttributeOffset);
+        NGL_LOGI("      maxVertexInputBindingStride:                     %u", limits.maxVertexInputBindingStride);
+        NGL_LOGI("      maxVertexOutputComponents:                       %u", limits.maxVertexOutputComponents);
+        NGL_LOGI("      maxTessellationGenerationLevel:                  %u", limits.maxTessellationGenerationLevel);
+        NGL_LOGI("      maxTessellationPatchSize:                        %u", limits.maxTessellationPatchSize);
+        NGL_LOGI("      maxTessellationControlPerVertexInputComponents:  %u",
+                 limits.maxTessellationControlPerVertexInputComponents);
+        NGL_LOGI("      maxTessellationControlPerVertexOutputComponents: %u",
+                 limits.maxTessellationControlPerVertexOutputComponents);
+        NGL_LOGI("      maxTessellationControlPerPatchOutputComponents:  %u",
+                 limits.maxTessellationControlPerPatchOutputComponents);
+        NGL_LOGI("      maxTessellationControlTotalOutputComponents:     %u",
+                 limits.maxTessellationControlTotalOutputComponents);
+        NGL_LOGI("      maxTessellationEvaluationInputComponents:        %u",
+                 limits.maxTessellationEvaluationInputComponents);
+        NGL_LOGI("      maxTessellationEvaluationOutputComponents:       %u",
+                 limits.maxTessellationEvaluationOutputComponents);
+        NGL_LOGI("      maxGeometryShaderInvocations:                    %u", limits.maxGeometryShaderInvocations);
+        NGL_LOGI("      maxGeometryInputComponents:                      %u", limits.maxGeometryInputComponents);
+        NGL_LOGI("      maxGeometryOutputComponents:                     %u", limits.maxGeometryOutputComponents);
+        NGL_LOGI("      maxGeometryOutputVertices:                       %u", limits.maxGeometryOutputVertices);
+        NGL_LOGI("      maxGeometryTotalOutputComponents:                %u", limits.maxGeometryTotalOutputComponents);
+        NGL_LOGI("      maxFragmentInputComponents:                      %u", limits.maxFragmentInputComponents);
+        NGL_LOGI("      maxFragmentOutputAttachments:                    %u", limits.maxFragmentOutputAttachments);
+        NGL_LOGI("      maxFragmentDualSrcAttachments:                   %u", limits.maxFragmentDualSrcAttachments);
+        NGL_LOGI("      maxFragmentCombinedOutputResources:              %u",
+                 limits.maxFragmentCombinedOutputResources);
+        NGL_LOGI("      maxComputeSharedMemorySize:                      %u", limits.maxComputeSharedMemorySize);
+        NGL_LOGI("      maxComputeWorkGroupCount:                        %u, %u, %u",
+                 limits.maxComputeWorkGroupCount[0], limits.maxComputeWorkGroupCount[1],
+                 limits.maxComputeWorkGroupCount[2]);
+        NGL_LOGI("      maxComputeWorkGroupInvocations:                  %u", limits.maxComputeWorkGroupInvocations);
+        NGL_LOGI("      maxComputeWorkGroupSize:                         %u, %u, %u", limits.maxComputeWorkGroupSize[0],
+                 limits.maxComputeWorkGroupSize[1], limits.maxComputeWorkGroupSize[2]);
+        NGL_LOGI("      subPixelPrecisionBits:                           %u", limits.subPixelPrecisionBits);
+        NGL_LOGI("      subTexelPrecisionBits:                           %u", limits.subTexelPrecisionBits);
+        NGL_LOGI("      mipmapPrecisionBits:                             %u", limits.mipmapPrecisionBits);
+        NGL_LOGI("      maxDrawIndexedIndexValue:                        %u", limits.maxDrawIndexedIndexValue);
+        NGL_LOGI("      maxDrawIndirectCount:                            %u", limits.maxDrawIndirectCount);
+        NGL_LOGI("      maxSamplerLodBias:                               %0.3f", limits.maxSamplerLodBias);
+        NGL_LOGI("      maxSamplerAnisotropy:                            %0.3f", limits.maxSamplerAnisotropy);
+        NGL_LOGI("      maxViewports:                                    %u", limits.maxViewports);
+        NGL_LOGI("      maxViewportDimensions:                           %u, %u", limits.maxViewportDimensions[0],
+                 limits.maxViewportDimensions[1]);
+        NGL_LOGI("      viewportBoundsRange:                             %0.3f, %0.3f", limits.viewportBoundsRange[0],
+                 limits.viewportBoundsRange[1]);
+        NGL_LOGI("      viewportSubPixelBits:                            %u", limits.viewportSubPixelBits);
+        NGL_LOGI("      minMemoryMapAlignment:                           %zd", limits.minMemoryMapAlignment);
+        NGL_LOGI("      minTexelBufferOffsetAlignment:                   %" PRIu64,
+                 limits.minTexelBufferOffsetAlignment);
+        NGL_LOGI("      minUniformBufferOffsetAlignment:                 %" PRIu64,
+                 limits.minUniformBufferOffsetAlignment);
+        NGL_LOGI("      minStorageBufferOffsetAlignment:                 %" PRIu64,
+                 limits.minStorageBufferOffsetAlignment);
+        NGL_LOGI("      minTexelOffset:                                  %d", limits.minTexelOffset);
+        NGL_LOGI("      maxTexelOffset:                                  %u", limits.maxTexelOffset);
+        NGL_LOGI("      minTexelGatherOffset:                            %d", limits.minTexelGatherOffset);
+        NGL_LOGI("      maxTexelGatherOffset:                            %u", limits.maxTexelGatherOffset);
+        NGL_LOGI("      minInterpolationOffset:                          %0.3f", limits.minInterpolationOffset);
+        NGL_LOGI("      maxInterpolationOffset:                          %0.3f", limits.maxInterpolationOffset);
+        NGL_LOGI("      subPixelInterpolationOffsetBits:                 %u", limits.subPixelInterpolationOffsetBits);
+        NGL_LOGI("      maxFramebufferWidth:                             %u", limits.maxFramebufferWidth);
+        NGL_LOGI("      maxFramebufferHeight:                            %u", limits.maxFramebufferHeight);
+        NGL_LOGI("      maxFramebufferLayers:                            %u", limits.maxFramebufferLayers);
+        NGL_LOGI("      framebufferColorSampleCounts:                    %s",
+                 sampleCountFlagsToString(limits.framebufferColorSampleCounts).c_str());
+        NGL_LOGI("      framebufferDepthSampleCounts:                    %s",
+                 sampleCountFlagsToString(limits.framebufferDepthSampleCounts).c_str());
+        NGL_LOGI("      framebufferStencilSampleCounts:                  %s",
+                 sampleCountFlagsToString(limits.framebufferStencilSampleCounts).c_str());
+        NGL_LOGI("      framebufferNoAttachmentsSampleCounts:            %s",
+                 sampleCountFlagsToString(limits.framebufferNoAttachmentsSampleCounts).c_str());
+        NGL_LOGI("      maxColorAttachments:                             %u", limits.maxColorAttachments);
+        NGL_LOGI("      sampledImageColorSampleCounts:                   %s",
+                 sampleCountFlagsToString(limits.sampledImageColorSampleCounts).c_str());
+        NGL_LOGI("      sampledImageIntegerSampleCounts:                 %s",
+                 sampleCountFlagsToString(limits.sampledImageIntegerSampleCounts).c_str());
+        NGL_LOGI("      sampledImageDepthSampleCounts:                   %s",
+                 sampleCountFlagsToString(limits.sampledImageDepthSampleCounts).c_str());
+        NGL_LOGI("      sampledImageStencilSampleCounts:                 %s",
+                 sampleCountFlagsToString(limits.sampledImageStencilSampleCounts).c_str());
+        NGL_LOGI("      storageImageSampleCounts:                        %s",
+                 sampleCountFlagsToString(limits.storageImageSampleCounts).c_str());
+        NGL_LOGI("      maxSampleMaskWords:                              %u", limits.maxSampleMaskWords);
+        NGL_LOGI("      timestampComputeAndGraphics:                     %d", limits.timestampComputeAndGraphics);
+        NGL_LOGI("      timestampPeriod:                                 %0.3f", limits.timestampPeriod);
+        NGL_LOGI("      maxClipDistances:                                %u", limits.maxClipDistances);
+        NGL_LOGI("      maxCullDistances:                                %u", limits.maxCullDistances);
+        NGL_LOGI("      maxCombinedClipAndCullDistances:                 %u", limits.maxCombinedClipAndCullDistances);
+        NGL_LOGI("      discreteQueuePriorities:                         %u", limits.discreteQueuePriorities);
+        NGL_LOGI("      pointSizeRange:                                  %0.3f, %0.3f", limits.pointSizeRange[0],
+                 limits.pointSizeRange[1]);
+        NGL_LOGI("      lineWidthRange:                                  %0.3f, %0.3f", limits.lineWidthRange[0],
+                 limits.lineWidthRange[1]);
+        NGL_LOGI("      pointSizeGranularity:                            %0.3f", limits.pointSizeGranularity);
+        NGL_LOGI("      lineWidthGranularity:                            %0.3f", limits.lineWidthGranularity);
+        NGL_LOGI("      strictLines:                                     %d", limits.strictLines);
+        NGL_LOGI("      standardSampleLocations:                         %d", limits.standardSampleLocations);
+        NGL_LOGI("      optimalBufferCopyOffsetAlignment:                %" PRIu64,
+                 limits.optimalBufferCopyOffsetAlignment);
+        NGL_LOGI("      optimalBufferCopyRowPitchAlignment:              %" PRIu64,
+                 limits.optimalBufferCopyRowPitchAlignment);
+        NGL_LOGI("      nonCoherentAtomSize:                             %" PRIu64, limits.nonCoherentAtomSize);
+
+        const VkPhysicalDeviceSparseProperties& sparseProperties = properties.sparseProperties;
+        NGL_LOGI("    sparseProperties:");
+        NGL_LOGI("      residencyStandard2DBlockShape:            %d", sparseProperties.residencyStandard2DBlockShape);
+        NGL_LOGI("      residencyStandard2DMultisampleBlockShape: %d",
+                 sparseProperties.residencyStandard2DMultisampleBlockShape);
+        NGL_LOGI("      residencyStandard3DBlockShape:            %d", sparseProperties.residencyStandard3DBlockShape);
+        NGL_LOGI("      residencyAlignedMipSize:                  %d", sparseProperties.residencyAlignedMipSize);
+        NGL_LOGI("      residencyNonResidentStrict:               %d", sparseProperties.residencyNonResidentStrict);
     }
 }
