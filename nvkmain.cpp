@@ -9,6 +9,7 @@
 #include "ngllog.h"
 #include "nvkdbg.h"
 #include "nvkerr.h"
+#include "nvkutil.h"
 
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
@@ -42,6 +43,7 @@ private:
     void initVulkan() {
         createInstance();
         nvkInitDebugIfNecessary(mInstance);
+        selectPhysicalDevice();
     }
 
     void createInstance() {
@@ -112,6 +114,19 @@ private:
         NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));
     }
 
+    void selectPhysicalDevice() {
+        uint32_t deviceCount = 0;
+        NVK_CHECK(vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr));
+        if (deviceCount == 0) {
+            NGL_ABORT("Found no Vulkan devices");
+        }
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
+        nvkDumpPhysicalDevices(devices);
+        mPhysicalDevice = devices[0];
+        NGL_LOGI("mPhysicalDevice: %p", reinterpret_cast<void*>(mPhysicalDevice));
+    }
+
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
             glfwPollEvents();
@@ -125,8 +140,9 @@ private:
         glfwTerminate();
     }
 
-    GLFWwindow* mWindow;
-    VkInstance mInstance;
+    GLFWwindow* mWindow = nullptr;
+    VkInstance mInstance = VK_NULL_HANDLE;
+    VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 };
 
 int nvkMain() {

@@ -165,6 +165,7 @@
     <ClCompile Include="nvkdbg.cpp" />
     <ClCompile Include="nvkerr.cpp" />
     <ClCompile Include="nvkmain.cpp" />
+    <ClCompile Include="nvkutil.cpp" />
     <ClCompile Include="nwar.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -197,6 +198,7 @@
     <ClInclude Include="nvkdbg.h" />
     <ClInclude Include="nvkerr.h" />
     <ClInclude Include="nvkmain.h" />
+    <ClInclude Include="nvkutil.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="soloud\soloud.vcxproj">
