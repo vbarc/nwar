@@ -124,7 +124,7 @@ private:
         vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
         nvkDumpPhysicalDevices(devices);
         mPhysicalDevice = devices[0];
-        NGL_LOGI("mPhysicalDevice: %p", reinterpret_cast<void*>(mPhysicalDevice));
+        NGL_LOGI("Selected physical device: %p", reinterpret_cast<void*>(mPhysicalDevice));
     }
 
     void mainLoop() {
