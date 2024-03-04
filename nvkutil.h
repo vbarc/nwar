@@ -4,4 +4,5 @@
 
 #include <vector>
 
-void nvkDumpPhysicalDevices(const std::vector<VkPhysicalDevice>& devices);
+void nvkDumpPhysicalDevices(VkInstance instance);
+void nvkDumpQueueFamilies(VkPhysicalDevice device);

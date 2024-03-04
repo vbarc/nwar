@@ -4,6 +4,7 @@
 #include <string>
 
 #include "ngllog.h"
+#include "nvkerr.h"
 
 static const char* deviceTypeToString(VkPhysicalDeviceType type) {
     switch (type) {
@@ -36,8 +37,52 @@ static std::string sampleCountFlagsToString(VkSampleCountFlags flags) {
     return std::to_string(flags) + " (" + result + ")";
 }
 
-void nvkDumpPhysicalDevices(const std::vector<VkPhysicalDevice>& devices) {
+static std::string queueFlagsToString(VkQueueFlags flags) {
+    std::string result = "";
+
+    auto append = [&result](const char* s) {
+        if (!result.empty()) {
+            result += ", ";
+        }
+        result += s;
+    };
+
+    if (flags & VK_QUEUE_GRAPHICS_BIT) {
+        append("GRAPHICS");
+    }
+    if (flags & VK_QUEUE_COMPUTE_BIT) {
+        append("COMPUTE");
+    }
+    if (flags & VK_QUEUE_TRANSFER_BIT) {
+        append("TRANSFER");
+    }
+    if (flags & VK_QUEUE_SPARSE_BINDING_BIT) {
+        append("SPARSE_BINDING");
+    }
+    if (flags & VK_QUEUE_PROTECTED_BIT) {
+        append("PROTECTED");
+    }
+    if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) {
+        append("VIDEO_DECODE");
+    }
+    if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR) {
+        append("VIDEO_ENCODE");
+    }
+    if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV) {
+        append("OPTICAL_FLOW");
+    }
+
+    return result;
+}
+
+void nvkDumpPhysicalDevices(VkInstance instance) {
     NGL_LOGI("Physical devices:");
+
+    uint32_t deviceCount;
+    NVK_CHECK(vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr));
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
     for (VkPhysicalDevice device : devices) {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(device, &properties);
@@ -204,5 +249,24 @@ void nvkDumpPhysicalDevices(const std::vector<VkPhysicalDevice>& devices) {
         NGL_LOGI("      residencyStandard3DBlockShape:            %d", sparseProperties.residencyStandard3DBlockShape);
         NGL_LOGI("      residencyAlignedMipSize:                  %d", sparseProperties.residencyAlignedMipSize);
         NGL_LOGI("      residencyNonResidentStrict:               %d", sparseProperties.residencyNonResidentStrict);
+    }
+}
+
+void nvkDumpQueueFamilies(VkPhysicalDevice device) {
+    NGL_LOGI("Queue families for device: %p", reinterpret_cast<void*>(device));
+
+    uint32_t queueFamilyCount;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+    std::vector<VkQueueFamilyProperties> propertiesVector(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, propertiesVector.data());
+
+    for (uint32_t i = 0; i < queueFamilyCount; i++) {
+        NGL_LOGI("  Family: %u", i);
+        const VkQueueFamilyProperties& props = propertiesVector[i];
+        NGL_LOGI("    queueFlags:                  %s", queueFlagsToString(props.queueFlags).c_str());
+        NGL_LOGI("    queueCount:                  %u", props.queueCount);
+        NGL_LOGI("    timestampValidBits:          %u", props.timestampValidBits);
+        NGL_LOGI("    minImageTransferGranularity: %u x %u x %u", props.minImageTransferGranularity.width,
+                 props.minImageTransferGranularity.height, props.minImageTransferGranularity.depth);
     }
 }

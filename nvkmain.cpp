@@ -1,6 +1,7 @@
 #include "nvkmain.h"
 
 #include <cstdlib>
+#include <optional>
 #include <vector>
 
 #define GLFW_INCLUDE_VULKAN
@@ -43,7 +44,9 @@ private:
     void initVulkan() {
         createInstance();
         nvkInitDebugIfNecessary(mInstance);
+        nvkDumpPhysicalDevices(mInstance);
         selectPhysicalDevice();
+        nvkDumpQueueFamilies(mPhysicalDevice);
     }
 
     void createInstance() {
@@ -122,9 +125,52 @@ private:
         }
         std::vector<VkPhysicalDevice> devices(deviceCount);
         vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
-        nvkDumpPhysicalDevices(devices);
-        mPhysicalDevice = devices[0];
+
+        for (const auto& device : devices) {
+            if (isDeviceSuitable(device)) {
+                mPhysicalDevice = device;
+                break;
+            }
+        }
+
+        if (mPhysicalDevice == VK_NULL_HANDLE) {
+            NGL_ABORT("Found no suitable Vulkan device");
+        }
+
         NGL_LOGI("Selected physical device: %p", reinterpret_cast<void*>(mPhysicalDevice));
+    }
+
+    bool isDeviceSuitable(VkPhysicalDevice device) {
+        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(device);
+        return queueFamilyIndices.isComplete();
+    }
+
+    struct QueueFamilyIndices {
+        std::optional<uint32_t> graphicsFamily;
+
+        bool isComplete() {
+            return graphicsFamily.has_value();
+        }
+    };
+
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+        QueueFamilyIndices result;
+
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+        for (uint32_t i = 0; i < queueFamilyCount; i++) {
+            if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                result.graphicsFamily = i;
+            }
+            if (result.isComplete()) {
+                break;
+            }
+        }
+
+        return result;
     }
 
     void mainLoop() {
