@@ -7,6 +7,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include "nglassert.h"
 #include "ngllog.h"
 #include "nvkdbg.h"
 #include "nvkerr.h"
@@ -47,6 +48,7 @@ private:
         nvkDumpPhysicalDevices(mInstance);
         selectPhysicalDevice();
         nvkDumpQueueFamilies(mPhysicalDevice);
+        createDevice();
     }
 
     void createInstance() {
@@ -173,6 +175,37 @@ private:
         return result;
     }
 
+    void createDevice() {
+        QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice);
+
+        NGL_ASSERT(indices.graphicsFamily.has_value());
+
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+        float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        std::vector<const char*> requiredLayers;
+        nvkAppendDebugLayersIfNecessary(requiredLayers);
+
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+        createInfo.pEnabledFeatures = &deviceFeatures;
+        createInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
+        createInfo.ppEnabledLayerNames = requiredLayers.data();
+        NVK_CHECK(vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice));
+        NGL_LOGI("mDevice: %p", reinterpret_cast<void*>(mDevice));
+
+        vkGetDeviceQueue(mDevice, indices.graphicsFamily.value(), 0, &mGraphicsQueue);
+        NGL_LOGI("mGraphicsQueue: %p", reinterpret_cast<void*>(mGraphicsQueue));
+    }
+
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
             glfwPollEvents();
@@ -180,6 +213,7 @@ private:
     }
 
     void terminate() {
+        vkDestroyDevice(mDevice, nullptr);
         nvkTerminateDebugIfNecessary(mInstance);
         vkDestroyInstance(mInstance, nullptr);
         glfwDestroyWindow(mWindow);
@@ -189,6 +223,8 @@ private:
     GLFWwindow* mWindow = nullptr;
     VkInstance mInstance = VK_NULL_HANDLE;
     VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
+    VkDevice mDevice = VK_NULL_HANDLE;
+    VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 };
 
 int nvkMain() {
