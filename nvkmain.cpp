@@ -2,10 +2,14 @@
 
 #include <cstdlib>
 #include <optional>
+#include <set>
 #include <vector>
 
+#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 #include "nglassert.h"
 #include "ngllog.h"
@@ -45,6 +49,7 @@ private:
     void initVulkan() {
         createInstance();
         nvkInitDebugIfNecessary(mInstance);
+        createSurface();
         nvkDumpPhysicalDevices(mInstance);
         selectPhysicalDevice();
         nvkDumpQueueFamilies(mPhysicalDevice);
@@ -119,6 +124,11 @@ private:
         NGL_LOGI("mInstance: %p", reinterpret_cast<void*>(mInstance));
     }
 
+    void createSurface() {
+        NVK_CHECK(glfwCreateWindowSurface(mInstance, mWindow, nullptr, &mSurface));
+        NGL_LOGI("mSurface: %p", reinterpret_cast<void*>(mSurface));
+    }
+
     void selectPhysicalDevice() {
         uint32_t deviceCount = 0;
         NVK_CHECK(vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr));
@@ -149,9 +159,10 @@ private:
 
     struct QueueFamilyIndices {
         std::optional<uint32_t> graphicsFamily;
+        std::optional<uint32_t> presentFamily;
 
         bool isComplete() {
-            return graphicsFamily.has_value();
+            return graphicsFamily.has_value() && presentFamily.has_value();
         }
     };
 
@@ -167,6 +178,11 @@ private:
             if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 result.graphicsFamily = i;
             }
+            VkBool32 presentSupport = false;
+            NVK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(device, i, mSurface, &presentSupport));
+            if (presentSupport) {
+                result.presentFamily = i;
+            }
             if (result.isComplete()) {
                 break;
             }
@@ -179,13 +195,23 @@ private:
         QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice);
 
         NGL_ASSERT(indices.graphicsFamily.has_value());
+        NGL_ASSERT(indices.presentFamily.has_value());
 
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-        queueCreateInfo.queueCount = 1;
+        NGL_LOGI("graphicsFamily queue index: %u", indices.graphicsFamily.value());
+        NGL_LOGI("presentFamily queue index:  %u", indices.presentFamily.value());
+
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+
         float queuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        for (uint32_t queueFamily : uniqueQueueFamilies) {
+            VkDeviceQueueCreateInfo queueCreateInfo{};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
@@ -194,8 +220,8 @@ private:
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos = &queueCreateInfo;
-        createInfo.queueCreateInfoCount = 1;
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        createInfo.pQueueCreateInfos = queueCreateInfos.data();
         createInfo.pEnabledFeatures = &deviceFeatures;
         createInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
         createInfo.ppEnabledLayerNames = requiredLayers.data();
@@ -203,7 +229,9 @@ private:
         NGL_LOGI("mDevice: %p", reinterpret_cast<void*>(mDevice));
 
         vkGetDeviceQueue(mDevice, indices.graphicsFamily.value(), 0, &mGraphicsQueue);
+        vkGetDeviceQueue(mDevice, indices.presentFamily.value(), 0, &mPresentQueue);
         NGL_LOGI("mGraphicsQueue: %p", reinterpret_cast<void*>(mGraphicsQueue));
+        NGL_LOGI("mPresentQueue:  %p", reinterpret_cast<void*>(mPresentQueue));
     }
 
     void mainLoop() {
@@ -214,6 +242,7 @@ private:
 
     void terminate() {
         vkDestroyDevice(mDevice, nullptr);
+        vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
         nvkTerminateDebugIfNecessary(mInstance);
         vkDestroyInstance(mInstance, nullptr);
         glfwDestroyWindow(mWindow);
@@ -222,9 +251,11 @@ private:
 
     GLFWwindow* mWindow = nullptr;
     VkInstance mInstance = VK_NULL_HANDLE;
+    VkSurfaceKHR mSurface = VK_NULL_HANDLE;
     VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
     VkDevice mDevice = VK_NULL_HANDLE;
     VkQueue mGraphicsQueue = VK_NULL_HANDLE;
+    VkQueue mPresentQueue = VK_NULL_HANDLE;
 };
 
 int nvkMain() {
