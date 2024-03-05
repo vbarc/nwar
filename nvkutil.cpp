@@ -84,12 +84,11 @@ void nvkDumpPhysicalDevices(VkInstance instance) {
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
     for (VkPhysicalDevice device : devices) {
+        NGL_LOGI("  Device: %p", reinterpret_cast<void*>(device));
+
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(device, &properties);
-        VkPhysicalDeviceFeatures features;
-        vkGetPhysicalDeviceFeatures(device, &features);
 
-        NGL_LOGI("  Device: %p", reinterpret_cast<void*>(device));
         NGL_LOGI("    apiVersion:       %u", properties.apiVersion);
         NGL_LOGI("    driverVersion:    %u", properties.driverVersion);
         NGL_LOGI("    vendorID:         x%x", properties.vendorID);
@@ -97,8 +96,9 @@ void nvkDumpPhysicalDevices(VkInstance instance) {
         NGL_LOGI("    deviceType:       %s", deviceTypeToString(properties.deviceType));
         NGL_LOGI("    deviceName:       %s", properties.deviceName);
 
-        const VkPhysicalDeviceLimits& limits = properties.limits;
         NGL_LOGI("    limits:");
+        const VkPhysicalDeviceLimits& limits = properties.limits;
+
         NGL_LOGI("      maxImageDimension1D:                             %u", limits.maxImageDimension1D);
         NGL_LOGI("      maxImageDimension2D:                             %u", limits.maxImageDimension2D);
         NGL_LOGI("      maxImageDimension3D:                             %u", limits.maxImageDimension3D);
@@ -249,6 +249,66 @@ void nvkDumpPhysicalDevices(VkInstance instance) {
         NGL_LOGI("      residencyStandard3DBlockShape:            %d", sparseProperties.residencyStandard3DBlockShape);
         NGL_LOGI("      residencyAlignedMipSize:                  %d", sparseProperties.residencyAlignedMipSize);
         NGL_LOGI("      residencyNonResidentStrict:               %d", sparseProperties.residencyNonResidentStrict);
+
+        NGL_LOGI("    features:");
+        VkPhysicalDeviceFeatures features;
+        vkGetPhysicalDeviceFeatures(device, &features);
+
+        NGL_LOGI("      robustBufferAccess:                      %d", features.robustBufferAccess);
+        NGL_LOGI("      fullDrawIndexUint32:                     %d", features.fullDrawIndexUint32);
+        NGL_LOGI("      imageCubeArray:                          %d", features.imageCubeArray);
+        NGL_LOGI("      independentBlend:                        %d", features.independentBlend);
+        NGL_LOGI("      geometryShader:                          %d", features.geometryShader);
+        NGL_LOGI("      tessellationShader:                      %d", features.tessellationShader);
+        NGL_LOGI("      sampleRateShading:                       %d", features.sampleRateShading);
+        NGL_LOGI("      dualSrcBlend:                            %d", features.dualSrcBlend);
+        NGL_LOGI("      logicOp:                                 %d", features.logicOp);
+        NGL_LOGI("      multiDrawIndirect:                       %d", features.multiDrawIndirect);
+        NGL_LOGI("      drawIndirectFirstInstance:               %d", features.drawIndirectFirstInstance);
+        NGL_LOGI("      depthClamp:                              %d", features.depthClamp);
+        NGL_LOGI("      depthBiasClamp:                          %d", features.depthBiasClamp);
+        NGL_LOGI("      fillModeNonSolid:                        %d", features.fillModeNonSolid);
+        NGL_LOGI("      depthBounds:                             %d", features.depthBounds);
+        NGL_LOGI("      wideLines:                               %d", features.wideLines);
+        NGL_LOGI("      largePoints:                             %d", features.largePoints);
+        NGL_LOGI("      alphaToOne:                              %d", features.alphaToOne);
+        NGL_LOGI("      multiViewport:                           %d", features.multiViewport);
+        NGL_LOGI("      samplerAnisotropy:                       %d", features.samplerAnisotropy);
+        NGL_LOGI("      textureCompressionETC2:                  %d", features.textureCompressionETC2);
+        NGL_LOGI("      textureCompressionASTC_LDR:              %d", features.textureCompressionASTC_LDR);
+        NGL_LOGI("      textureCompressionBC:                    %d", features.textureCompressionBC);
+        NGL_LOGI("      occlusionQueryPrecise:                   %d", features.occlusionQueryPrecise);
+        NGL_LOGI("      pipelineStatisticsQuery:                 %d", features.pipelineStatisticsQuery);
+        NGL_LOGI("      vertexPipelineStoresAndAtomics:          %d", features.vertexPipelineStoresAndAtomics);
+        NGL_LOGI("      fragmentStoresAndAtomics:                %d", features.fragmentStoresAndAtomics);
+        NGL_LOGI("      shaderTessellationAndGeometryPointSize:  %d", features.shaderTessellationAndGeometryPointSize);
+        NGL_LOGI("      shaderImageGatherExtended:               %d", features.shaderImageGatherExtended);
+        NGL_LOGI("      shaderStorageImageExtendedFormats:       %d", features.shaderStorageImageExtendedFormats);
+        NGL_LOGI("      shaderStorageImageMultisample:           %d", features.shaderStorageImageMultisample);
+        NGL_LOGI("      shaderStorageImageReadWithoutFormat:     %d", features.shaderStorageImageReadWithoutFormat);
+        NGL_LOGI("      shaderStorageImageWriteWithoutFormat:    %d", features.shaderStorageImageWriteWithoutFormat);
+        NGL_LOGI("      shaderUniformBufferArrayDynamicIndexing: %d", features.shaderUniformBufferArrayDynamicIndexing);
+        NGL_LOGI("      shaderSampledImageArrayDynamicIndexing:  %d", features.shaderSampledImageArrayDynamicIndexing);
+        NGL_LOGI("      shaderStorageBufferArrayDynamicIndexing: %d", features.shaderStorageBufferArrayDynamicIndexing);
+        NGL_LOGI("      shaderStorageImageArrayDynamicIndexing:  %d", features.shaderStorageImageArrayDynamicIndexing);
+        NGL_LOGI("      shaderClipDistance:                      %d", features.shaderClipDistance);
+        NGL_LOGI("      shaderCullDistance:                      %d", features.shaderCullDistance);
+        NGL_LOGI("      shaderFloat64:                           %d", features.shaderFloat64);
+        NGL_LOGI("      shaderInt64:                             %d", features.shaderInt64);
+        NGL_LOGI("      shaderInt16:                             %d", features.shaderInt16);
+        NGL_LOGI("      shaderResourceResidency:                 %d", features.shaderResourceResidency);
+        NGL_LOGI("      shaderResourceMinLod:                    %d", features.shaderResourceMinLod);
+        NGL_LOGI("      sparseBinding:                           %d", features.sparseBinding);
+        NGL_LOGI("      sparseResidencyBuffer:                   %d", features.sparseResidencyBuffer);
+        NGL_LOGI("      sparseResidencyImage2D:                  %d", features.sparseResidencyImage2D);
+        NGL_LOGI("      sparseResidencyImage3D:                  %d", features.sparseResidencyImage3D);
+        NGL_LOGI("      sparseResidency2Samples:                 %d", features.sparseResidency2Samples);
+        NGL_LOGI("      sparseResidency4Samples:                 %d", features.sparseResidency4Samples);
+        NGL_LOGI("      sparseResidency8Samples:                 %d", features.sparseResidency8Samples);
+        NGL_LOGI("      sparseResidency16Samples:                %d", features.sparseResidency16Samples);
+        NGL_LOGI("      sparseResidencyAliased:                  %d", features.sparseResidencyAliased);
+        NGL_LOGI("      variableMultisampleRate:                 %d", features.variableMultisampleRate);
+        NGL_LOGI("      inheritedQueries:                        %d", features.inheritedQueries);
     }
 }
 
