@@ -37,42 +37,31 @@ static std::string sampleCountFlagsToString(VkSampleCountFlags flags) {
     return std::to_string(flags) + " (" + result + ")";
 }
 
-static std::string queueFlagsToString(VkQueueFlags flags) {
-    std::string result = "";
-
-    auto append = [&result](const char* s) {
-        if (!result.empty()) {
-            result += ", ";
-        }
-        result += s;
-    };
-
+static void dumpQueueFlags(VkQueueFlags flags, const char* indent) {
     if (flags & VK_QUEUE_GRAPHICS_BIT) {
-        append("GRAPHICS");
+        NGL_LOGI("%sVK_QUEUE_GRAPHICS_BIT", indent);
     }
     if (flags & VK_QUEUE_COMPUTE_BIT) {
-        append("COMPUTE");
+        NGL_LOGI("%sVK_QUEUE_COMPUTE_BIT", indent);
     }
     if (flags & VK_QUEUE_TRANSFER_BIT) {
-        append("TRANSFER");
+        NGL_LOGI("%sVK_QUEUE_TRANSFER_BIT", indent);
     }
     if (flags & VK_QUEUE_SPARSE_BINDING_BIT) {
-        append("SPARSE_BINDING");
+        NGL_LOGI("%sVK_QUEUE_SPARSE_BINDING_BIT", indent);
     }
     if (flags & VK_QUEUE_PROTECTED_BIT) {
-        append("PROTECTED");
+        NGL_LOGI("%sVK_QUEUE_PROTECTED_BIT", indent);
     }
     if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) {
-        append("VIDEO_DECODE");
+        NGL_LOGI("%sVK_QUEUE_VIDEO_DECODE_BIT_KHR", indent);
     }
     if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR) {
-        append("VIDEO_ENCODE");
+        NGL_LOGI("%sVK_QUEUE_VIDEO_ENCODE_BIT_KHR", indent);
     }
     if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV) {
-        append("OPTICAL_FLOW");
+        NGL_LOGI("%sVK_QUEUE_OPTICAL_FLOW_BIT_NV", indent);
     }
-
-    return result;
 }
 
 void nvkDumpPhysicalDevices(VkInstance instance) {
@@ -333,7 +322,8 @@ void nvkDumpQueueFamilies(VkPhysicalDevice device) {
     for (uint32_t i = 0; i < queueFamilyCount; i++) {
         NGL_LOGI("  Family: %u", i);
         const VkQueueFamilyProperties& props = propertiesVector[i];
-        NGL_LOGI("    queueFlags:                  %s", queueFlagsToString(props.queueFlags).c_str());
+        NGL_LOGI("    queueFlags:");
+        dumpQueueFlags(props.queueFlags, "      ");
         NGL_LOGI("    queueCount:                  %u", props.queueCount);
         NGL_LOGI("    timestampValidBits:          %u", props.timestampValidBits);
         NGL_LOGI("    minImageTransferGranularity: %u x %u x %u", props.minImageTransferGranularity.width,
