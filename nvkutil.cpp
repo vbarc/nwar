@@ -340,3 +340,169 @@ void nvkDumpQueueFamilies(VkPhysicalDevice device) {
                  props.minImageTransferGranularity.height, props.minImageTransferGranularity.depth);
     }
 }
+
+static std::string surfaceTransformFlagsToString(VkSurfaceTransformFlagsKHR flags) {
+    std::string result = "";
+
+    auto append = [&result](const char* s) {
+        if (!result.empty()) {
+            result += ", ";
+        }
+        result += s;
+    };
+
+    if (flags & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
+        append("IDENTITY");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR) {
+        append("ROTATE_90");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR) {
+        append("ROTATE_180");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
+        append("ROTATE_270");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR) {
+        append("HORIZONTAL_MIRROR");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR) {
+        append("HORIZONTAL_MIRROR_ROTATE_90");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR) {
+        append("HORIZONTAL_MIRROR_ROTATE_180");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR) {
+        append("HORIZONTAL_MIRROR_ROTATE_270");
+    }
+    if (flags & VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR) {
+        append("INHERIT");
+    }
+
+    return result;
+}
+
+static std::string compositeAlphaFlagsToString(VkCompositeAlphaFlagsKHR flags) {
+    std::string result = "";
+
+    auto append = [&result](const char* s) {
+        if (!result.empty()) {
+            result += ", ";
+        }
+        result += s;
+    };
+
+    if (flags & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
+        append("OPAQUE");
+    }
+    if (flags & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR) {
+        append("PRE_MULTIPLIED");
+    }
+    if (flags & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR) {
+        append("POST_MULTIPLIED");
+    }
+    if (flags & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
+        append("INHERIT");
+    }
+
+    return result;
+}
+
+static std::string imageUsageFlagsToString(VkImageUsageFlags flags) {
+    std::string result = "";
+
+    auto append = [&result](const char* s) {
+        if (!result.empty()) {
+            result += ", ";
+        }
+        result += s;
+    };
+
+    if (flags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
+        append("TRANSFER_SRC");
+    }
+    if (flags & VK_IMAGE_USAGE_TRANSFER_DST_BIT) {
+        append("TRANSFER_DST");
+    }
+    if (flags & VK_IMAGE_USAGE_SAMPLED_BIT) {
+        append("SAMPLED");
+    }
+    if (flags & VK_IMAGE_USAGE_STORAGE_BIT) {
+        append("STORAGE");
+    }
+    if (flags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
+        append("COLOR_ATTACHMENT");
+    }
+    if (flags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+        append("DEPTH_STENCIL_ATTACHMENT");
+    }
+    if (flags & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) {
+        append("TRANSIENT_ATTACHMENT");
+    }
+    if (flags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) {
+        append("INPUT_ATTACHMENT");
+    }
+    if (flags & VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR) {
+        append("VIDEO_DECODE_DST");
+    }
+    if (flags & VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR) {
+        append("VIDEO_DECODE_SRC");
+    }
+    if (flags & VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR) {
+        append("VIDEO_DECODE_DPB");
+    }
+    if (flags & VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT) {
+        append("FRAGMENT_DENSITY_MAP");
+    }
+    if (flags & VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR) {
+        append("FRAGMENT_SHADING_RATE_ATTACHMENT");
+    }
+    if (flags & VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT) {
+        append("HOST_TRANSFER");
+    }
+    if (flags & VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR) {
+        append("VIDEO_ENCODE_DST");
+    }
+    if (flags & VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR) {
+        append("VIDEO_ENCODE_SRC");
+    }
+    if (flags & VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR) {
+        append("VIDEO_ENCODE_DPB");
+    }
+    if (flags & VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT) {
+        append("ATTACHMENT_FEEDBACK_LOOP");
+    }
+    if (flags & VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI) {
+        append("INVOCATION_MASK_HUAWEI");
+    }
+    if (flags & VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM) {
+        append("SAMPLE_WEIGHT_QCOM");
+    }
+    if (flags & VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM) {
+        append("SAMPLE_BLOCK_MATCH_QCOM");
+    }
+    if (flags & VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV) {
+        append("SHADING_RATE_IMAGE_NV");
+    }
+
+    return result;
+}
+
+void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, const char* indent) {
+    NGL_LOGI("%sminImageCount:           %u", indent, capabilities.minImageCount);
+    NGL_LOGI("%smaxImageCount:           %u", indent, capabilities.maxImageCount);
+    NGL_LOGI("%scurrentExtent:           %u x %u", indent, capabilities.currentExtent.width,
+             capabilities.currentExtent.height);
+    NGL_LOGI("%sminImageExtent:          %u x %u", indent, capabilities.minImageExtent.width,
+             capabilities.minImageExtent.height);
+    NGL_LOGI("%smaxImageExtent:          %u x %u", indent, capabilities.maxImageExtent.width,
+             capabilities.maxImageExtent.height);
+    NGL_LOGI("%smaxImageArrayLayers:     %u", indent, capabilities.maxImageArrayLayers);
+    NGL_LOGI("%ssupportedTransforms:     %s", indent,
+             surfaceTransformFlagsToString(capabilities.supportedTransforms).c_str());
+    NGL_LOGI("%scurrentTransform:        %s", indent,
+             surfaceTransformFlagsToString(capabilities.currentTransform).c_str());
+    NGL_LOGI("%ssupportedCompositeAlpha: %s", indent,
+             compositeAlphaFlagsToString(capabilities.supportedCompositeAlpha).c_str());
+    NGL_LOGI("%ssupportedUsageFlags: %s", indent, imageUsageFlagsToString(capabilities.supportedUsageFlags).c_str());
+}

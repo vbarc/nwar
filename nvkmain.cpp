@@ -294,6 +294,11 @@ private:
                                                                 details.presentModes.data()));
         }
 
+        NGL_LOGI("Swapchain support details for device %p surface %p:", reinterpret_cast<void*>(device),
+                 reinterpret_cast<void*>(mSurface));
+        NGL_LOGI("  Capabilities:");
+        nvkDumpSurfaceCapabilities(details.capabilities, "    ");
+
         return details;
     }
 
