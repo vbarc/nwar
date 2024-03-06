@@ -159,7 +159,20 @@ private:
     bool isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices queueFamilyIndices = findQueueFamilies(device);
 
-        return queueFamilyIndices.isComplete() && checkDeviceExtensionsSupport(device);
+        if (!queueFamilyIndices.isComplete()) {
+            return false;
+        }
+
+        if (!checkDeviceExtensionsSupport(device)) {
+            return false;
+        }
+
+        SwapchainSupportDetails swapchainSupport = querySwapchainSupport(device);
+        if (swapchainSupport.formats.empty() || swapchainSupport.presentModes.empty()) {
+            return false;
+        }
+
+        return true;
     }
 
     struct QueueFamilyIndices {
@@ -253,6 +266,35 @@ private:
         vkGetDeviceQueue(mDevice, indices.presentFamily.value(), 0, &mPresentQueue);
         NGL_LOGI("mGraphicsQueue: %p", reinterpret_cast<void*>(mGraphicsQueue));
         NGL_LOGI("mPresentQueue:  %p", reinterpret_cast<void*>(mPresentQueue));
+    }
+
+    struct SwapchainSupportDetails {
+        VkSurfaceCapabilitiesKHR capabilities;
+        std::vector<VkSurfaceFormatKHR> formats;
+        std::vector<VkPresentModeKHR> presentModes;
+    };
+
+    SwapchainSupportDetails querySwapchainSupport(VkPhysicalDevice device) {
+        SwapchainSupportDetails details;
+
+        NVK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, mSurface, &details.capabilities));
+
+        uint32_t formatCount;
+        NVK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface, &formatCount, nullptr));
+        if (formatCount != 0) {
+            details.formats.resize(formatCount);
+            NVK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device, mSurface, &formatCount, details.formats.data()));
+        }
+
+        uint32_t presentModeCount;
+        NVK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface, &presentModeCount, nullptr));
+        if (presentModeCount != 0) {
+            details.presentModes.resize(presentModeCount);
+            NVK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(device, mSurface, &presentModeCount,
+                                                                details.presentModes.data()));
+        }
+
+        return details;
     }
 
     void mainLoop() {
