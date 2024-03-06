@@ -300,6 +300,8 @@ private:
         nvkDumpSurfaceCapabilities(details.capabilities, "    ");
         NGL_LOGI("  Formats:");
         nvkDumpSurfaceFormats(details.formats, "    ");
+        NGL_LOGI("  Present modes:");
+        nvkDumpPresentModes(details.presentModes, "    ");
 
         return details;
     }

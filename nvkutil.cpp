@@ -1058,3 +1058,28 @@ void nvkDumpSurfaceFormats(const std::vector<VkSurfaceFormatKHR>& formats, const
         NGL_LOGI("%s%s/%s", indent, formatToString(format.format), colorSpaceToString(format.colorSpace));
     }
 }
+
+static const char* presentModeToString(VkPresentModeKHR mode) {
+    switch (mode) {
+        case VK_PRESENT_MODE_IMMEDIATE_KHR:
+            return "VK_PRESENT_MODE_IMMEDIATE_KHR";
+        case VK_PRESENT_MODE_MAILBOX_KHR:
+            return "VK_PRESENT_MODE_MAILBOX_KHR";
+        case VK_PRESENT_MODE_FIFO_KHR:
+            return "VK_PRESENT_MODE_FIFO_KHR";
+        case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
+            return "VK_PRESENT_MODE_FIFO_RELAXED_KHR";
+        case VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR:
+            return "VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR";
+        case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR:
+            return "VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+void nvkDumpPresentModes(const std::vector<VkPresentModeKHR>& modes, const char* indent) {
+    for (VkPresentModeKHR mode : modes) {
+        NGL_LOGI("%s%s", indent, presentModeToString(mode));
+    }
+}
