@@ -241,9 +241,11 @@ private:
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
         createInfo.pQueueCreateInfos = queueCreateInfos.data();
-        createInfo.pEnabledFeatures = &deviceFeatures;
         createInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
         createInfo.ppEnabledLayerNames = requiredLayers.data();
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(kDeviceExtensions.size());
+        createInfo.ppEnabledExtensionNames = kDeviceExtensions.data();
+        createInfo.pEnabledFeatures = &deviceFeatures;
         NVK_CHECK(vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice));
         NGL_LOGI("mDevice: %p", reinterpret_cast<void*>(mDevice));
 
