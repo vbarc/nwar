@@ -3,7 +3,10 @@
 #include <cstdlib>
 #include <optional>
 #include <set>
+#include <string>
 #include <vector>
+
+#include "nvkmain.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
@@ -19,6 +22,7 @@
 
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
+const std::vector<const char*> kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 class HelloTriangleApplication {
 public:
@@ -57,7 +61,7 @@ private:
     }
 
     void createInstance() {
-        NGL_LOGI("Available extensions:");
+        NGL_LOGI("Available instance extensions:");
         uint32_t extensionCount;
         NVK_CHECK(vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr));
         std::vector<VkExtensionProperties> extensions(extensionCount);
@@ -66,7 +70,7 @@ private:
             NGL_LOGI("  %s %u", extension.extensionName, extension.specVersion);
         }
 
-        NGL_LOGI("Available layers:");
+        NGL_LOGI("Available instance layers:");
         uint32_t layerCount;
         NVK_CHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr));
         std::vector<VkLayerProperties> layers(layerCount);
@@ -90,21 +94,21 @@ private:
             NGL_LOGE("glfwGetRequiredInstanceExtensions() failed");
             abort();
         }
-        NGL_LOGI("Extensions required by GLFW:");
+        NGL_LOGI("Instance extensions required by GLFW:");
         for (uint32_t i = 0; i < glfwExtensionCount; i++) {
             NGL_LOGI("  %s", glfwExtensions[i]);
         }
 
         std::vector<const char*> requiredExtensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
         nvkAppendDebugExtensionsIfNecessary(requiredExtensions);
-        NGL_LOGI("Required extensions:");
+        NGL_LOGI("Required instance extensions:");
         for (const char* requiredExtension : requiredExtensions) {
             NGL_LOGI("  %s", requiredExtension);
         }
 
         std::vector<const char*> requiredLayers;
         nvkAppendDebugLayersIfNecessary(requiredLayers);
-        NGL_LOGI("Required layers:");
+        NGL_LOGI("Required instance layers:");
         for (const char* requiredLayer : requiredLayers) {
             NGL_LOGI("  %s", requiredLayer);
         }
@@ -154,7 +158,8 @@ private:
 
     bool isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices queueFamilyIndices = findQueueFamilies(device);
-        return queueFamilyIndices.isComplete();
+
+        return queueFamilyIndices.isComplete() && checkDeviceExtensionsSupport(device);
     }
 
     struct QueueFamilyIndices {
@@ -189,6 +194,20 @@ private:
         }
 
         return result;
+    }
+
+    bool checkDeviceExtensionsSupport(VkPhysicalDevice device) {
+        uint32_t extensionCount;
+        NVK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr));
+        std::vector<VkExtensionProperties> extensions(extensionCount);
+        NVK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data()));
+
+        std::set<std::string> requiredExtensions(kDeviceExtensions.begin(), kDeviceExtensions.end());
+
+        for (const auto& extension : extensions) {
+            requiredExtensions.erase(extension.extensionName);
+        }
+        return requiredExtensions.empty();
     }
 
     void createDevice() {

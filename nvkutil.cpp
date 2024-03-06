@@ -309,6 +309,16 @@ void nvkDumpPhysicalDevices(VkInstance instance) {
         NGL_LOGI("      sparseResidencyAliased:                  %d", features.sparseResidencyAliased);
         NGL_LOGI("      variableMultisampleRate:                 %d", features.variableMultisampleRate);
         NGL_LOGI("      inheritedQueries:                        %d", features.inheritedQueries);
+
+        NGL_LOGI("    extensions:");
+        uint32_t extensionCount;
+        NVK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr));
+        std::vector<VkExtensionProperties> extensions(extensionCount);
+        NVK_CHECK(vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, extensions.data()));
+
+        for (VkExtensionProperties extension : extensions) {
+            NGL_LOGI("      %s %u", extension.extensionName, extension.specVersion);
+        }
     }
 }
 
