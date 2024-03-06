@@ -372,30 +372,19 @@ static std::string surfaceTransformFlagsToString(VkSurfaceTransformFlagsKHR flag
     return result;
 }
 
-static std::string compositeAlphaFlagsToString(VkCompositeAlphaFlagsKHR flags) {
-    std::string result = "";
-
-    auto append = [&result](const char* s) {
-        if (!result.empty()) {
-            result += ", ";
-        }
-        result += s;
-    };
-
+void dumpCompositeAlphaFlags(VkCompositeAlphaFlagsKHR flags, const char* indent) {
     if (flags & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
-        append("OPAQUE");
+        NGL_LOGI("%sVK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR", indent);
     }
     if (flags & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR) {
-        append("PRE_MULTIPLIED");
+        NGL_LOGI("%sVK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR", indent);
     }
     if (flags & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR) {
-        append("POST_MULTIPLIED");
+        NGL_LOGI("%sVK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR", indent);
     }
     if (flags & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR) {
-        append("INHERIT");
+        NGL_LOGI("%sVK_COMPOSITE_ALPHA_INHERIT_BIT_KHR", indent);
     }
-
-    return result;
 }
 
 void dumpUsageFlags(VkImageUsageFlags flags, const char* indent) {
@@ -481,8 +470,8 @@ void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, con
              surfaceTransformFlagsToString(capabilities.supportedTransforms).c_str());
     NGL_LOGI("%scurrentTransform:        %s", indent,
              surfaceTransformFlagsToString(capabilities.currentTransform).c_str());
-    NGL_LOGI("%ssupportedCompositeAlpha: %s", indent,
-             compositeAlphaFlagsToString(capabilities.supportedCompositeAlpha).c_str());
+    NGL_LOGI("%ssupportedCompositeAlpha", indent);
+    dumpCompositeAlphaFlags(capabilities.supportedCompositeAlpha, (std::string(indent) + "  ").c_str());
     NGL_LOGI("%ssupportedUsageFlags:", indent);
     dumpUsageFlags(capabilities.supportedUsageFlags, (std::string(indent) + "  ").c_str());
 }
