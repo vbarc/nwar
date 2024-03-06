@@ -331,48 +331,37 @@ void nvkDumpQueueFamilies(VkPhysicalDevice device) {
     }
 }
 
-static std::string surfaceTransformFlagsToString(VkSurfaceTransformFlagsKHR flags) {
-    std::string result = "";
-
-    auto append = [&result](const char* s) {
-        if (!result.empty()) {
-            result += ", ";
-        }
-        result += s;
-    };
-
+static void dumpSurfaceTransformFlags(VkSurfaceTransformFlagsKHR flags, const char* indent) {
     if (flags & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
-        append("IDENTITY");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR) {
-        append("ROTATE_90");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR) {
-        append("ROTATE_180");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
-        append("ROTATE_270");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR) {
-        append("HORIZONTAL_MIRROR");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR) {
-        append("HORIZONTAL_MIRROR_ROTATE_90");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR) {
-        append("HORIZONTAL_MIRROR_ROTATE_180");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR) {
-        append("HORIZONTAL_MIRROR_ROTATE_270");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR", indent);
     }
     if (flags & VK_SURFACE_TRANSFORM_INHERIT_BIT_KHR) {
-        append("INHERIT");
+        NGL_LOGI("%sVK_SURFACE_TRANSFORM_INHERIT_BIT_KHR", indent);
     }
-
-    return result;
 }
 
-void dumpCompositeAlphaFlags(VkCompositeAlphaFlagsKHR flags, const char* indent) {
+static void dumpCompositeAlphaFlags(VkCompositeAlphaFlagsKHR flags, const char* indent) {
     if (flags & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR) {
         NGL_LOGI("%sVK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR", indent);
     }
@@ -387,7 +376,7 @@ void dumpCompositeAlphaFlags(VkCompositeAlphaFlagsKHR flags, const char* indent)
     }
 }
 
-void dumpUsageFlags(VkImageUsageFlags flags, const char* indent) {
+static void dumpUsageFlags(VkImageUsageFlags flags, const char* indent) {
     if (flags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
         NGL_LOGI("%sVK_IMAGE_USAGE_TRANSFER_SRC_BIT", indent);
     }
@@ -466,10 +455,10 @@ void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, con
     NGL_LOGI("%smaxImageExtent:          %u x %u", indent, capabilities.maxImageExtent.width,
              capabilities.maxImageExtent.height);
     NGL_LOGI("%smaxImageArrayLayers:     %u", indent, capabilities.maxImageArrayLayers);
-    NGL_LOGI("%ssupportedTransforms:     %s", indent,
-             surfaceTransformFlagsToString(capabilities.supportedTransforms).c_str());
-    NGL_LOGI("%scurrentTransform:        %s", indent,
-             surfaceTransformFlagsToString(capabilities.currentTransform).c_str());
+    NGL_LOGI("%ssupportedTransforms:", indent);
+    dumpSurfaceTransformFlags(capabilities.supportedTransforms, (std::string(indent) + "  ").c_str());
+    NGL_LOGI("%scurrentTransform:", indent);
+    dumpSurfaceTransformFlags(capabilities.currentTransform, (std::string(indent) + "  ").c_str());
     NGL_LOGI("%ssupportedCompositeAlpha", indent);
     dumpCompositeAlphaFlags(capabilities.supportedCompositeAlpha, (std::string(indent) + "  ").c_str());
     NGL_LOGI("%ssupportedUsageFlags:", indent);
