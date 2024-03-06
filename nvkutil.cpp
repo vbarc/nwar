@@ -1017,37 +1017,37 @@ static const char* formatToString(VkFormat format) {
 static const char* colorSpaceToString(VkColorSpaceKHR colorSpace) {
     switch (colorSpace) {
         case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR:
-            return "SRGB_NONLINEAR_KHR";
+            return "VK_COLOR_SPACE_SRGB_NONLINEAR_KHR";
         case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT:
-            return "DISPLAY_P3_NONLINEAR_EXT";
+            return "VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT";
         case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT:
-            return "EXTENDED_SRGB_LINEAR_EXT";
+            return "VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT";
         case VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT:
-            return "DISPLAY_P3_LINEAR_EXT";
+            return "VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT";
         case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT:
-            return "DCI_P3_NONLINEAR_EXT";
+            return "VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT";
         case VK_COLOR_SPACE_BT709_LINEAR_EXT:
-            return "BT709_LINEAR_EXT";
+            return "VK_COLOR_SPACE_BT709_LINEAR_EXT";
         case VK_COLOR_SPACE_BT709_NONLINEAR_EXT:
-            return "BT709_NONLINEAR_EXT";
+            return "VK_COLOR_SPACE_BT709_NONLINEAR_EXT";
         case VK_COLOR_SPACE_BT2020_LINEAR_EXT:
-            return "BT2020_LINEAR_EXT";
+            return "VK_COLOR_SPACE_BT2020_LINEAR_EXT";
         case VK_COLOR_SPACE_HDR10_ST2084_EXT:
-            return "HDR10_ST2084_EXT";
+            return "VK_COLOR_SPACE_HDR10_ST2084_EXT";
         case VK_COLOR_SPACE_DOLBYVISION_EXT:
-            return "DOLBYVISION_EXT";
+            return "VK_COLOR_SPACE_DOLBYVISION_EXT";
         case VK_COLOR_SPACE_HDR10_HLG_EXT:
-            return "HDR10_HLG_EXT";
+            return "VK_COLOR_SPACE_HDR10_HLG_EXT";
         case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT:
-            return "ADOBERGB_LINEAR_EXT";
+            return "VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT";
         case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT:
-            return "ADOBERGB_NONLINEAR_EXT";
+            return "VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT";
         case VK_COLOR_SPACE_PASS_THROUGH_EXT:
-            return "PASS_THROUGH_EXT";
+            return "VK_COLOR_SPACE_PASS_THROUGH_EXT";
         case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT:
-            return "EXTENDED_SRGB_NONLINEAR_EXT";
+            return "VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT";
         case VK_COLOR_SPACE_DISPLAY_NATIVE_AMD:
-            return "DISPLAY_NATIVE_AMD";
+            return "VK_COLOR_SPACE_DISPLAY_NATIVE_AMD";
         default:
             return "UNKNOWN";
     }
