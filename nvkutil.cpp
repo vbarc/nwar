@@ -398,84 +398,73 @@ static std::string compositeAlphaFlagsToString(VkCompositeAlphaFlagsKHR flags) {
     return result;
 }
 
-static std::string imageUsageFlagsToString(VkImageUsageFlags flags) {
-    std::string result = "";
-
-    auto append = [&result](const char* s) {
-        if (!result.empty()) {
-            result += ", ";
-        }
-        result += s;
-    };
-
+void dumpUsageFlags(VkImageUsageFlags flags, const char* indent) {
     if (flags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
-        append("TRANSFER_SRC");
+        NGL_LOGI("%sVK_IMAGE_USAGE_TRANSFER_SRC_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_TRANSFER_DST_BIT) {
-        append("TRANSFER_DST");
+        NGL_LOGI("%sVK_IMAGE_USAGE_TRANSFER_DST_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_SAMPLED_BIT) {
-        append("SAMPLED");
+        NGL_LOGI("%sVK_IMAGE_USAGE_SAMPLED_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_STORAGE_BIT) {
-        append("STORAGE");
+        NGL_LOGI("%sVK_IMAGE_USAGE_STORAGE_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
-        append("COLOR_ATTACHMENT");
+        NGL_LOGI("%sVK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-        append("DEPTH_STENCIL_ATTACHMENT");
+        NGL_LOGI("%sVK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) {
-        append("TRANSIENT_ATTACHMENT");
+        NGL_LOGI("%sVK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT) {
-        append("INPUT_ATTACHMENT");
+        NGL_LOGI("%sVK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT", indent);
     }
     if (flags & VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR) {
-        append("VIDEO_DECODE_DST");
+        NGL_LOGI("%sVK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR) {
-        append("VIDEO_DECODE_SRC");
+        NGL_LOGI("%sVK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR) {
-        append("VIDEO_DECODE_DPB");
+        NGL_LOGI("%sVK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT) {
-        append("FRAGMENT_DENSITY_MAP");
+        NGL_LOGI("%sVK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT", indent);
     }
     if (flags & VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR) {
-        append("FRAGMENT_SHADING_RATE_ATTACHMENT");
+        NGL_LOGI("%sVK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT) {
-        append("HOST_TRANSFER");
+        NGL_LOGI("%sVK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT", indent);
     }
     if (flags & VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR) {
-        append("VIDEO_ENCODE_DST");
+        NGL_LOGI("%sVK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR) {
-        append("VIDEO_ENCODE_SRC");
+        NGL_LOGI("%sVK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR) {
-        append("VIDEO_ENCODE_DPB");
+        NGL_LOGI("%sVK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR", indent);
     }
     if (flags & VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT) {
-        append("ATTACHMENT_FEEDBACK_LOOP");
+        NGL_LOGI("%sVK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT", indent);
     }
     if (flags & VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI) {
-        append("INVOCATION_MASK_HUAWEI");
+        NGL_LOGI("%sVK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI", indent);
     }
     if (flags & VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM) {
-        append("SAMPLE_WEIGHT_QCOM");
+        NGL_LOGI("%sVK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM", indent);
     }
     if (flags & VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM) {
-        append("SAMPLE_BLOCK_MATCH_QCOM");
+        NGL_LOGI("%sVK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM", indent);
     }
     if (flags & VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV) {
-        append("SHADING_RATE_IMAGE_NV");
+        NGL_LOGI("%sVK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV", indent);
     }
-
-    return result;
 }
 
 void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, const char* indent) {
@@ -494,7 +483,8 @@ void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, con
              surfaceTransformFlagsToString(capabilities.currentTransform).c_str());
     NGL_LOGI("%ssupportedCompositeAlpha: %s", indent,
              compositeAlphaFlagsToString(capabilities.supportedCompositeAlpha).c_str());
-    NGL_LOGI("%ssupportedUsageFlags: %s", indent, imageUsageFlagsToString(capabilities.supportedUsageFlags).c_str());
+    NGL_LOGI("%ssupportedUsageFlags:", indent);
+    dumpUsageFlags(capabilities.supportedUsageFlags, (std::string(indent) + "  ").c_str());
 }
 
 static const char* formatToString(VkFormat format) {
