@@ -7,3 +7,4 @@
 void nvkDumpPhysicalDevices(VkInstance instance);
 void nvkDumpQueueFamilies(VkPhysicalDevice device);
 void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, const char* indent);
+void nvkDumpSurfaceFormats(const std::vector<VkSurfaceFormatKHR>& formats, const char* indent);

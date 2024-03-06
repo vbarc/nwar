@@ -298,6 +298,8 @@ private:
                  reinterpret_cast<void*>(mSurface));
         NGL_LOGI("  Capabilities:");
         nvkDumpSurfaceCapabilities(details.capabilities, "    ");
+        NGL_LOGI("  Formats:");
+        nvkDumpSurfaceFormats(details.formats, "    ");
 
         return details;
     }
