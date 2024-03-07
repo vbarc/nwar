@@ -310,6 +310,20 @@ private:
 
         NVK_CHECK(vkCreateSwapchainKHR(mDevice, &createInfo, nullptr, &mSwapchain));
         NGL_LOGI("mSwapchain: %p", reinterpret_cast<void*>(mSwapchain));
+
+        NVK_CHECK(vkGetSwapchainImagesKHR(mDevice, mSwapchain, &imageCount, nullptr));
+        mSwapchainImages.resize(imageCount);
+        NVK_CHECK(vkGetSwapchainImagesKHR(mDevice, mSwapchain, &imageCount, mSwapchainImages.data()));
+        NGL_LOGI("mSwapchainImages:");
+        for (VkImage image : mSwapchainImages) {
+            NGL_LOGI("  %p", reinterpret_cast<void*>(image));
+        }
+
+        mSwapchainFormat = surfaceFormat.format;
+        NGL_LOGI("mSwapchainFormat: %s", nvkFormatToString(mSwapchainFormat));
+
+        mSwapchainExtent = extent;
+        NGL_LOGI("mSwapchainExtent: %u x %u", mSwapchainExtent.width, mSwapchainExtent.height);
     }
 
     struct SwapchainSupportDetails {
@@ -403,6 +417,9 @@ private:
     VkQueue mGraphicsQueue = VK_NULL_HANDLE;
     VkQueue mPresentQueue = VK_NULL_HANDLE;
     VkSwapchainKHR mSwapchain = VK_NULL_HANDLE;
+    std::vector<VkImage> mSwapchainImages;
+    VkFormat mSwapchainFormat;
+    VkExtent2D mSwapchainExtent;
 };
 
 int nvkMain() {

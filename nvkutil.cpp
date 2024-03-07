@@ -465,7 +465,7 @@ void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, con
     dumpUsageFlags(capabilities.supportedUsageFlags, (std::string(indent) + "  ").c_str());
 }
 
-static const char* formatToString(VkFormat format) {
+const char* nvkFormatToString(VkFormat format) {
     switch (format) {
         case VK_FORMAT_UNDEFINED:
             return "VK_FORMAT_UNDEFINED";
@@ -1013,7 +1013,7 @@ static const char* colorSpaceToString(VkColorSpaceKHR colorSpace) {
 
 void nvkDumpSurfaceFormats(const std::vector<VkSurfaceFormatKHR>& formats, const char* indent) {
     for (VkSurfaceFormatKHR format : formats) {
-        NGL_LOGI("%s%s/%s", indent, formatToString(format.format), colorSpaceToString(format.colorSpace));
+        NGL_LOGI("%s%s/%s", indent, nvkFormatToString(format.format), colorSpaceToString(format.colorSpace));
     }
 }
 
