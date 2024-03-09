@@ -67,6 +67,7 @@ private:
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
+        createCommandBuffer();
     }
 
     void createInstance() {
@@ -627,9 +628,20 @@ private:
         poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-        NVK_CHECK(vkCreateCommandPool(mDevice, &poolCreateInfo, nullptr, &mCommandPool));
 
+        NVK_CHECK(vkCreateCommandPool(mDevice, &poolCreateInfo, nullptr, &mCommandPool));
         NGL_LOGI("mCommandPool: %p", reinterpret_cast<void*>(mCommandPool));
+    }
+
+    void createCommandBuffer() {
+        VkCommandBufferAllocateInfo allocateInfo{};
+        allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocateInfo.commandPool = mCommandPool;
+        allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocateInfo.commandBufferCount = 1;
+
+        NVK_CHECK(vkAllocateCommandBuffers(mDevice, &allocateInfo, &mCommandBuffer));
+        NGL_LOGI("mCommandBuffer: %p", reinterpret_cast<void*>(mCommandBuffer));
     }
 
     void mainLoop() {
@@ -675,6 +687,7 @@ private:
     VkPipeline mPipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
+    VkCommandBuffer mCommandBuffer;
 };
 
 int nvkMain() {
