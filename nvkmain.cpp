@@ -26,6 +26,7 @@
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
 const std::vector<const char*> kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+constexpr int kMaxFramesInFlight = 2;
 
 class HelloTriangleApplication {
 public:
@@ -67,7 +68,7 @@ private:
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
-        createCommandBuffer();
+        createCommandBuffers();
         createSyncObjects();
     }
 
@@ -644,15 +645,19 @@ private:
         NGL_LOGI("mCommandPool: %p", reinterpret_cast<void*>(mCommandPool));
     }
 
-    void createCommandBuffer() {
+    void createCommandBuffers() {
+        mCommandBuffers.resize(kMaxFramesInFlight);
+
         VkCommandBufferAllocateInfo allocateInfo{};
         allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocateInfo.commandPool = mCommandPool;
         allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocateInfo.commandBufferCount = 1;
+        allocateInfo.commandBufferCount = static_cast<uint32_t>(mCommandBuffers.size());
 
-        NVK_CHECK(vkAllocateCommandBuffers(mDevice, &allocateInfo, &mCommandBuffer));
-        NGL_LOGI("mCommandBuffer: %p", reinterpret_cast<void*>(mCommandBuffer));
+        NVK_CHECK(vkAllocateCommandBuffers(mDevice, &allocateInfo, mCommandBuffers.data()));
+        for (size_t i = 0; i < mCommandBuffers.size(); i++) {
+            NGL_LOGI("mCommandBuffers[%zd]: %p", i, reinterpret_cast<void*>(mCommandBuffers[i]));
+        }
     }
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
@@ -697,18 +702,27 @@ private:
     }
 
     void createSyncObjects() {
+        mImageAvailableSemaphores.resize(kMaxFramesInFlight);
+        mRenderFinishedSemaphores.resize(kMaxFramesInFlight);
+        mInFlightFences.resize(kMaxFramesInFlight);
+
         VkSemaphoreCreateInfo semaphoreCreateInfo{};
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        NVK_CHECK(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphore));
-        NGL_LOGI("mImageAvailableSemaphore: %p", reinterpret_cast<void*>(mImageAvailableSemaphore));
-        NVK_CHECK(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphore));
-        NGL_LOGI("mRenderFinishedSemaphore: %p", reinterpret_cast<void*>(mRenderFinishedSemaphore));
 
         VkFenceCreateInfo fenceCreateInfo{};
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        NVK_CHECK(vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &mInFlightFence));
-        NGL_LOGI("mInFlightFence: %p", reinterpret_cast<void*>(mInFlightFence));
+
+        for (size_t i = 0; i < kMaxFramesInFlight; i++) {
+            NVK_CHECK(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphores[i]));
+            NGL_LOGI("mImageAvailableSemaphores[%zd]: %p", i, reinterpret_cast<void*>(mImageAvailableSemaphores[i]));
+
+            NVK_CHECK(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphores[i]));
+            NGL_LOGI("mRenderFinishedSemaphores[%zd]: %p", i, reinterpret_cast<void*>(mRenderFinishedSemaphores[i]));
+
+            NVK_CHECK(vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &mInFlightFences[i]));
+            NGL_LOGI("mInFlightFences[%zd]:           %p", i, reinterpret_cast<void*>(mInFlightFences[i]));
+        }
     }
 
     void mainLoop() {
@@ -720,20 +734,20 @@ private:
     }
 
     void drawFrame() {
-        NVK_CHECK(vkWaitForFences(mDevice, 1, &mInFlightFence, VK_TRUE, UINT64_MAX));
-        NVK_CHECK(vkResetFences(mDevice, 1, &mInFlightFence));
+        NVK_CHECK(vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX));
+        NVK_CHECK(vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]));
 
         uint32_t imageIndex;
-        NVK_CHECK(vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX, mImageAvailableSemaphore, VK_NULL_HANDLE,
-                                        &imageIndex));
+        NVK_CHECK(vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame],
+                                        VK_NULL_HANDLE, &imageIndex));
 
-        NVK_CHECK(vkResetCommandBuffer(mCommandBuffer, 0));
+        NVK_CHECK(vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0));
 
-        recordCommandBuffer(mCommandBuffer, imageIndex);
+        recordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 
-        VkSemaphore waitSemaphores[] = {mImageAvailableSemaphore};
+        VkSemaphore waitSemaphores[] = {mImageAvailableSemaphores[mCurrentFrame]};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphore};
+        VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphores[mCurrentFrame]};
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -741,10 +755,10 @@ private:
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &mCommandBuffer;
+        submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
-        NVK_CHECK(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFence));
+        NVK_CHECK(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]));
 
         VkSwapchainKHR swapChains[] = {mSwapchain};
 
@@ -757,12 +771,16 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr;  // Optional
         NVK_CHECK(vkQueuePresentKHR(mPresentQueue, &presentInfo));
+
+        mCurrentFrame = (mCurrentFrame + 1) % kMaxFramesInFlight;
     }
 
     void terminate() {
-        vkDestroyFence(mDevice, mInFlightFence, nullptr);
-        vkDestroySemaphore(mDevice, mRenderFinishedSemaphore, nullptr);
-        vkDestroySemaphore(mDevice, mImageAvailableSemaphore, nullptr);
+        for (size_t i = 0; i < kMaxFramesInFlight; i++) {
+            vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
+            vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
+            vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
+        }
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
         for (auto framebuffer : mSwapchainFramebuffers) {
             vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
@@ -799,10 +817,11 @@ private:
     VkPipeline mPipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
-    VkCommandBuffer mCommandBuffer;
-    VkSemaphore mImageAvailableSemaphore;
-    VkSemaphore mRenderFinishedSemaphore;
-    VkFence mInFlightFence;
+    std::vector<VkCommandBuffer> mCommandBuffers;
+    std::vector<VkSemaphore> mImageAvailableSemaphores;
+    std::vector<VkSemaphore> mRenderFinishedSemaphores;
+    std::vector<VkFence> mInFlightFences;
+    uint32_t mCurrentFrame = 0;
 };
 
 int nvkMain() {
