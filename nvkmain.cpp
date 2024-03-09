@@ -65,6 +65,7 @@ private:
         createSwapchainImageViews();
         createRenderPass();
         createGraphicsPipeline();
+        createFramebuffers();
     }
 
     void createInstance() {
@@ -599,6 +600,25 @@ private:
         return result;
     }
 
+    void createFramebuffers() {
+        mSwapchainFramebuffers.resize(mSwapchainImageViews.size());
+        for (size_t i = 0; i < mSwapchainImageViews.size(); i++) {
+            VkImageView attachments[] = {mSwapchainImageViews[i]};
+
+            VkFramebufferCreateInfo framebufferCreateInfo{};
+            framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferCreateInfo.renderPass = mRenderPass;
+            framebufferCreateInfo.attachmentCount = 1;
+            framebufferCreateInfo.pAttachments = attachments;
+            framebufferCreateInfo.width = mSwapchainExtent.width;
+            framebufferCreateInfo.height = mSwapchainExtent.height;
+            framebufferCreateInfo.layers = 1;
+
+            NVK_CHECK(vkCreateFramebuffer(mDevice, &framebufferCreateInfo, nullptr, &mSwapchainFramebuffers[i]));
+            NGL_LOGI("mSwapchainFramebuffers[%zd]: %p", i, reinterpret_cast<void*>(mSwapchainFramebuffers[i]));
+        }
+    }
+
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
             glfwPollEvents();
@@ -606,6 +626,9 @@ private:
     }
 
     void terminate() {
+        for (auto framebuffer : mSwapchainFramebuffers) {
+            vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+        }
         vkDestroyPipeline(mDevice, mPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
         vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
@@ -636,6 +659,7 @@ private:
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
     VkPipeline mPipeline;
+    std::vector<VkFramebuffer> mSwapchainFramebuffers;
 };
 
 int nvkMain() {
