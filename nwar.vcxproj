@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="glad\src\glad.c" />
+    <ClCompile Include="nfile.cpp" />
     <ClCompile Include="NglArmyLayer.cpp" />
     <ClCompile Include="NglBicubicInterpolation.cpp" />
     <ClCompile Include="NglBuffer.cpp" />
@@ -173,8 +174,12 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".gitignore" />
+    <None Include="compile.sh" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="nfile.h" />
     <ClInclude Include="NglArmyLayer.h" />
     <ClInclude Include="nglassert.h" />
     <ClInclude Include="nglassimp.h" />

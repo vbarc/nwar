@@ -75,10 +75,16 @@
     <ClCompile Include="nvkutil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nfile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".gitignore" />
+    <None Include="shaders\shader.vert" />
+    <None Include="shaders\shader.frag" />
+    <None Include="compile.sh" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nglerr.h">
@@ -157,6 +163,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nvkutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

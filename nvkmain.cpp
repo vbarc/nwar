@@ -18,6 +18,7 @@
 
 #include "nglassert.h"
 #include "ngllog.h"
+#include "nfile.h"
 #include "nvkdbg.h"
 #include "nvkerr.h"
 #include "nvkutil.h"
@@ -62,6 +63,7 @@ private:
         createDevice();
         createSwapchain();
         createSwapchainImageViews();
+        createGraphicsPipeline();
     }
 
     void createInstance() {
@@ -415,6 +417,44 @@ private:
             NVK_CHECK(vkCreateImageView(mDevice, &createInfo, nullptr, &mSwapchainImageViews[i]));
             NGL_LOGI("  %p", reinterpret_cast<void*>(mSwapchainImageViews[i]));
         }
+    }
+
+    void createGraphicsPipeline() {
+        auto vertShaderCode = nReadFile("shaders/vert.spv");
+        auto fragShaderCode = nReadFile("shaders/frag.spv");
+        NGL_LOGI("vertShaderCode.size: %zu", vertShaderCode.size());
+        NGL_LOGI("fragShaderCode.size: %zu", fragShaderCode.size());
+        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
+        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+        NGL_LOGI("vertShaderModule: %p", reinterpret_cast<void*>(vertShaderModule));
+        NGL_LOGI("fragShaderModule: %p", reinterpret_cast<void*>(fragShaderModule));
+
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragShaderStageInfo.module = fragShaderModule;
+        fragShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+
+        vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
+        vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
+    }
+
+    VkShaderModule createShaderModule(const std::vector<char>& code) {
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = code.size();
+        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+        VkShaderModule result;
+        NVK_CHECK(vkCreateShaderModule(mDevice, &createInfo, nullptr, &result));
+        return result;
     }
 
     void mainLoop() {
