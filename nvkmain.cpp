@@ -16,9 +16,9 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+#include "nfile.h"
 #include "nglassert.h"
 #include "ngllog.h"
-#include "nfile.h"
 #include "nvkdbg.h"
 #include "nvkerr.h"
 #include "nvkutil.h"
@@ -429,19 +429,19 @@ private:
         NGL_LOGI("vertShaderModule: %p", reinterpret_cast<void*>(vertShaderModule));
         NGL_LOGI("fragShaderModule: %p", reinterpret_cast<void*>(fragShaderModule));
 
-        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = vertShaderModule;
-        vertShaderStageInfo.pName = "main";
+        VkPipelineShaderStageCreateInfo vertShaderStageCreateInfo{};
+        vertShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertShaderStageCreateInfo.module = vertShaderModule;
+        vertShaderStageCreateInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = fragShaderModule;
-        fragShaderStageInfo.pName = "main";
+        VkPipelineShaderStageCreateInfo fragShaderStageCreateInfo{};
+        fragShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragShaderStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragShaderStageCreateInfo.module = fragShaderModule;
+        fragShaderStageCreateInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+        VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageCreateInfo, fragShaderStageCreateInfo};
 
         vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
         vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
