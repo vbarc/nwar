@@ -66,6 +66,7 @@ private:
         createRenderPass();
         createGraphicsPipeline();
         createFramebuffers();
+        createCommandPool();
     }
 
     void createInstance() {
@@ -619,6 +620,18 @@ private:
         }
     }
 
+    void createCommandPool() {
+        QueueFamilyIndices queueFamilyIndices = findQueueFamilies(mPhysicalDevice);
+
+        VkCommandPoolCreateInfo poolCreateInfo{};
+        poolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+        NVK_CHECK(vkCreateCommandPool(mDevice, &poolCreateInfo, nullptr, &mCommandPool));
+
+        NGL_LOGI("mCommandPool: %p", reinterpret_cast<void*>(mCommandPool));
+    }
+
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
             glfwPollEvents();
@@ -626,6 +639,7 @@ private:
     }
 
     void terminate() {
+        vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
         for (auto framebuffer : mSwapchainFramebuffers) {
             vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
         }
@@ -660,6 +674,7 @@ private:
     VkPipelineLayout mPipelineLayout;
     VkPipeline mPipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
+    VkCommandPool mCommandPool;
 };
 
 int nvkMain() {
