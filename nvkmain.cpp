@@ -68,6 +68,7 @@ private:
         createFramebuffers();
         createCommandPool();
         createCommandBuffer();
+        createSyncObjects();
     }
 
     void createInstance() {
@@ -442,12 +443,22 @@ private:
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
 
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
         VkRenderPassCreateInfo renderPassCreateInfo{};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassCreateInfo.attachmentCount = 1;
         renderPassCreateInfo.pAttachments = &colorAttachment;
         renderPassCreateInfo.subpassCount = 1;
         renderPassCreateInfo.pSubpasses = &subpass;
+        renderPassCreateInfo.dependencyCount = 1;
+        renderPassCreateInfo.pDependencies = &dependency;
 
         NVK_CHECK(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass));
         NGL_LOGI("mRenderPass: %p", reinterpret_cast<void*>(mRenderPass));
@@ -685,13 +696,73 @@ private:
         NVK_CHECK(vkEndCommandBuffer(commandBuffer));
     }
 
+    void createSyncObjects() {
+        VkSemaphoreCreateInfo semaphoreCreateInfo{};
+        semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        NVK_CHECK(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mImageAvailableSemaphore));
+        NGL_LOGI("mImageAvailableSemaphore: %p", reinterpret_cast<void*>(mImageAvailableSemaphore));
+        NVK_CHECK(vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderFinishedSemaphore));
+        NGL_LOGI("mRenderFinishedSemaphore: %p", reinterpret_cast<void*>(mRenderFinishedSemaphore));
+
+        VkFenceCreateInfo fenceCreateInfo{};
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        NVK_CHECK(vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &mInFlightFence));
+        NGL_LOGI("mInFlightFence: %p", reinterpret_cast<void*>(mInFlightFence));
+    }
+
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
             glfwPollEvents();
+            drawFrame();
         }
+        NVK_CHECK(vkDeviceWaitIdle(mDevice));
+    }
+
+    void drawFrame() {
+        NVK_CHECK(vkWaitForFences(mDevice, 1, &mInFlightFence, VK_TRUE, UINT64_MAX));
+        NVK_CHECK(vkResetFences(mDevice, 1, &mInFlightFence));
+
+        uint32_t imageIndex;
+        NVK_CHECK(vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX, mImageAvailableSemaphore, VK_NULL_HANDLE,
+                                        &imageIndex));
+
+        NVK_CHECK(vkResetCommandBuffer(mCommandBuffer, 0));
+
+        recordCommandBuffer(mCommandBuffer, imageIndex);
+
+        VkSemaphore waitSemaphores[] = {mImageAvailableSemaphore};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphore};
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &mCommandBuffer;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+        NVK_CHECK(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFence));
+
+        VkSwapchainKHR swapChains[] = {mSwapchain};
+
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = nullptr;  // Optional
+        NVK_CHECK(vkQueuePresentKHR(mPresentQueue, &presentInfo));
     }
 
     void terminate() {
+        vkDestroyFence(mDevice, mInFlightFence, nullptr);
+        vkDestroySemaphore(mDevice, mRenderFinishedSemaphore, nullptr);
+        vkDestroySemaphore(mDevice, mImageAvailableSemaphore, nullptr);
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
         for (auto framebuffer : mSwapchainFramebuffers) {
             vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
@@ -729,6 +800,9 @@ private:
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
     VkCommandBuffer mCommandBuffer;
+    VkSemaphore mImageAvailableSemaphore;
+    VkSemaphore mRenderFinishedSemaphore;
+    VkFence mInFlightFence;
 };
 
 int nvkMain() {
