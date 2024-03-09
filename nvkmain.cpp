@@ -493,10 +493,10 @@ private:
         vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
         vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;  // Optional
 
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{};
-        inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo{};
+        inputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
 
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -564,6 +564,27 @@ private:
         NVK_CHECK(vkCreatePipelineLayout(mDevice, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout));
         NGL_LOGI("mPipelineLayout: %p", reinterpret_cast<void*>(mPipelineLayout));
 
+        VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
+        pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineCreateInfo.stageCount = 2;
+        pipelineCreateInfo.pStages = shaderStages;
+        pipelineCreateInfo.pVertexInputState = &vertexInputStateCreateInfo;
+        pipelineCreateInfo.pInputAssemblyState = &inputAssemblyStateCreateInfo;
+        pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
+        pipelineCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+        pipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
+        pipelineCreateInfo.pDepthStencilState = nullptr;  // Optional
+        pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+        pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
+        pipelineCreateInfo.layout = mPipelineLayout;
+        pipelineCreateInfo.renderPass = mRenderPass;
+        pipelineCreateInfo.subpass = 0;
+        pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;  // Optional
+        pipelineCreateInfo.basePipelineIndex = -1;               // Optional
+
+        NVK_CHECK(vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mPipeline));
+        NGL_LOGI("mPipeline: %p", reinterpret_cast<void*>(mPipeline));
+
         vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
         vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
     }
@@ -585,6 +606,7 @@ private:
     }
 
     void terminate() {
+        vkDestroyPipeline(mDevice, mPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
         vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
         for (auto imageView : mSwapchainImageViews) {
@@ -613,6 +635,7 @@ private:
     std::vector<VkImageView> mSwapchainImageViews;
     VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
+    VkPipeline mPipeline;
 };
 
 int nvkMain() {
