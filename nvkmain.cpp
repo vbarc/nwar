@@ -63,6 +63,7 @@ private:
         createDevice();
         createSwapchain();
         createSwapchainImageViews();
+        createRenderPass();
         createGraphicsPipeline();
     }
 
@@ -418,6 +419,36 @@ private:
             NGL_LOGI("  %p", reinterpret_cast<void*>(mSwapchainImageViews[i]));
         }
     }
+    void createRenderPass() {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = mSwapchainFormat;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachmentRef;
+
+        VkRenderPassCreateInfo renderPassCreateInfo{};
+        renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassCreateInfo.attachmentCount = 1;
+        renderPassCreateInfo.pAttachments = &colorAttachment;
+        renderPassCreateInfo.subpassCount = 1;
+        renderPassCreateInfo.pSubpasses = &subpass;
+
+        NVK_CHECK(vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass));
+        NGL_LOGI("mRenderPass: %p", reinterpret_cast<void*>(mRenderPass));
+    }
 
     void createGraphicsPipeline() {
         auto vertShaderCode = nReadFile("shaders/vert.spv");
@@ -555,6 +586,7 @@ private:
 
     void terminate() {
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+        vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
         for (auto imageView : mSwapchainImageViews) {
             vkDestroyImageView(mDevice, imageView, nullptr);
         }
@@ -579,6 +611,7 @@ private:
     VkFormat mSwapchainFormat;
     VkExtent2D mSwapchainExtent;
     std::vector<VkImageView> mSwapchainImageViews;
+    VkRenderPass mRenderPass;
     VkPipelineLayout mPipelineLayout;
 };
 
