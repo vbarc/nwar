@@ -45,13 +45,21 @@ private:
         }
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         mWindow = glfwCreateWindow(kWidth, kHeight, "N War (VK)", nullptr, nullptr);
         if (!mWindow) {
             NGL_LOGE("glfwCreateWindow() failed");
             abort();
         }
+
+        glfwSetWindowUserPointer(mWindow, this);
+        glfwSetFramebufferSizeCallback(mWindow, framebufferResizeCallback);
+    }
+
+    static void framebufferResizeCallback(GLFWwindow* window, int /*width*/, int /*height*/) {
+        NGL_LOGI("framebufferResizeCallback");
+        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        app->mFramebufferResized = true;
     }
 
     void initVulkan() {
@@ -789,7 +797,9 @@ private:
         presentInfo.pResults = nullptr;  // Optional
         result = vkQueuePresentKHR(mPresentQueue, &presentInfo);
 
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || mFramebufferResized) {
+            NGL_LOGI("Resize or swapchain incompatibility detected, recreating swapchain");
+            mFramebufferResized = false;
             recreateSwapchain();
         } else {
             NGL_VERIFY(result == VK_SUCCESS);
@@ -849,6 +859,8 @@ private:
     std::vector<VkSemaphore> mRenderFinishedSemaphores;
     std::vector<VkFence> mInFlightFences;
     uint32_t mCurrentFrame = 0;
+
+    bool mFramebufferResized = false;
 };
 
 int nvkMain() {
