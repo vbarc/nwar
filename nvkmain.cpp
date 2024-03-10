@@ -411,6 +411,15 @@ private:
     }
 
     void recreateSwapchain() {
+        int width = 0;
+        int height = 0;
+        glfwGetFramebufferSize(mWindow, &width, &height);
+        while (width == 0 || height == 0) {
+            NGL_LOGI("width: %d, height: %d", width, height);
+            glfwGetFramebufferSize(mWindow, &width, &height);
+            glfwWaitEvents();
+        }
+
         vkDeviceWaitIdle(mDevice);
 
         cleanupSwapchain();
