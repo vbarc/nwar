@@ -402,6 +402,16 @@ private:
         }
     }
 
+    void recreateSwapchain() {
+        vkDeviceWaitIdle(mDevice);
+
+        cleanupSwapchain();
+
+        createSwapchain();
+        createSwapchainImageViews();
+        createFramebuffers();
+    }
+
     void createSwapchainImageViews() {
         NGL_LOGI("mSwapchainImageViews:");
         mSwapchainImageViews.resize(mSwapchainImages.size());
@@ -735,11 +745,18 @@ private:
 
     void drawFrame() {
         NVK_CHECK(vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX));
-        NVK_CHECK(vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]));
 
         uint32_t imageIndex;
-        NVK_CHECK(vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame],
-                                        VK_NULL_HANDLE, &imageIndex));
+        VkResult result = vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX,
+                                                mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            recreateSwapchain();
+            return;
+        } else {
+            NGL_VERIFY(result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR);
+        }
+
+        NVK_CHECK(vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]));
 
         NVK_CHECK(vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0));
 
@@ -770,34 +787,44 @@ private:
         presentInfo.pSwapchains = swapChains;
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr;  // Optional
-        NVK_CHECK(vkQueuePresentKHR(mPresentQueue, &presentInfo));
+        result = vkQueuePresentKHR(mPresentQueue, &presentInfo);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            recreateSwapchain();
+        } else {
+            NGL_VERIFY(result == VK_SUCCESS);
+        }
 
         mCurrentFrame = (mCurrentFrame + 1) % kMaxFramesInFlight;
     }
 
     void terminate() {
+        cleanupSwapchain();
         for (size_t i = 0; i < kMaxFramesInFlight; i++) {
             vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
             vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
         }
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
-        for (auto framebuffer : mSwapchainFramebuffers) {
-            vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
-        }
         vkDestroyPipeline(mDevice, mPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
         vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
-        for (auto imageView : mSwapchainImageViews) {
-            vkDestroyImageView(mDevice, imageView, nullptr);
-        }
-        vkDestroySwapchainKHR(mDevice, mSwapchain, nullptr);
         vkDestroyDevice(mDevice, nullptr);
         vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
         nvkTerminateDebugIfNecessary(mInstance);
         vkDestroyInstance(mInstance, nullptr);
         glfwDestroyWindow(mWindow);
         glfwTerminate();
+    }
+
+    void cleanupSwapchain() {
+        for (auto framebuffer : mSwapchainFramebuffers) {
+            vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+        }
+        for (auto imageView : mSwapchainImageViews) {
+            vkDestroyImageView(mDevice, imageView, nullptr);
+        }
+        vkDestroySwapchainKHR(mDevice, mSwapchain, nullptr);
     }
 
     GLFWwindow* mWindow = nullptr;
