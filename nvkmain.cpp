@@ -1,6 +1,7 @@
 #include "nvkmain.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <limits>
 #include <optional>
@@ -8,13 +9,13 @@
 #include <string>
 #include <vector>
 
-#include "nvkmain.h"
-
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+
+#include <glm/glm.hpp>
 
 #include "nfile.h"
 #include "nglassert.h"
@@ -27,6 +28,41 @@ constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
 const std::vector<const char*> kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 constexpr int kMaxFramesInFlight = 2;
+
+struct Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+
+    static VkVertexInputBindingDescription getBindingDescription() {
+        VkVertexInputBindingDescription bindingDescription{};
+        bindingDescription.binding = 0;
+        bindingDescription.stride = sizeof(Vertex);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        return bindingDescription;
+    }
+
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+        return attributeDescriptions;
+    }
+};
+
+const std::vector<Vertex> kVertices = {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},   //
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}   //
+};
 
 class HelloTriangleApplication {
 public:
@@ -295,7 +331,7 @@ private:
         VkExtent2D extent = chooseExtent(swapchainSupport.capabilities);
         uint32_t imageCount = swapchainSupport.capabilities.minImageCount + 1;
         if (swapchainSupport.capabilities.maxImageCount > 0) {
-            imageCount = min(imageCount, swapchainSupport.capabilities.maxImageCount);
+            imageCount = std::min(imageCount, swapchainSupport.capabilities.maxImageCount);
         }
 
         VkSwapchainCreateInfoKHR createInfo{};
@@ -528,12 +564,16 @@ private:
         viewportStateCreateInfo.viewportCount = 1;
         viewportStateCreateInfo.scissorCount = 1;
 
+        auto bindingDescription = Vertex::getBindingDescription();
+        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
         vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
-        vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr;  // Optional
-        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;  // Optional
+        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+        vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputStateCreateInfo.vertexAttributeDescriptionCount =
+                static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo{};
         inputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
