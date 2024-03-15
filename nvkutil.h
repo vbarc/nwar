@@ -10,3 +10,5 @@ void nvkDumpSurfaceCapabilities(const VkSurfaceCapabilitiesKHR capabilities, con
 void nvkDumpSurfaceFormats(const std::vector<VkSurfaceFormatKHR>& formats, const char* indent);
 void nvkDumpPresentModes(const std::vector<VkPresentModeKHR>& modes, const char* indent);
 const char* nvkFormatToString(VkFormat format);
+void nvkDumpPhysicalDeviceMemoryProperties(VkPhysicalDevice device);
+void nvkDumpMemoryRequirements(const VkMemoryRequirements& memoryRequirements, const char* indent);

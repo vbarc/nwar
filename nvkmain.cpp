@@ -112,6 +112,8 @@ private:
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
+        nvkDumpPhysicalDeviceMemoryProperties(mPhysicalDevice);
+        createVertexBuffer();
         createCommandBuffers();
         createSyncObjects();
     }
@@ -712,6 +714,53 @@ private:
         NGL_LOGI("mCommandPool: %p", reinterpret_cast<void*>(mCommandPool));
     }
 
+    void createVertexBuffer() {
+        VkBufferCreateInfo bufferCreateInfo{};
+        bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferCreateInfo.size = sizeof(Vertex) * kVertices.size();
+        bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+        bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        NVK_CHECK(vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &mVertexBuffer));
+        NGL_LOGI("mVertexBuffer: %p", reinterpret_cast<void*>(mVertexBuffer));
+
+        VkMemoryRequirements memoryRequirements;
+        vkGetBufferMemoryRequirements(mDevice, mVertexBuffer, &memoryRequirements);
+        NGL_LOGI("Memory requirements:");
+        nvkDumpMemoryRequirements(memoryRequirements, "  ");
+
+        uint32_t memoryTypeIndex =
+                findMemoryType(memoryRequirements.memoryTypeBits,
+                               VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        NGL_LOGI("Found required memory type: %u", memoryTypeIndex);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memoryRequirements.size;
+        allocInfo.memoryTypeIndex = memoryTypeIndex;
+        NVK_CHECK(vkAllocateMemory(mDevice, &allocInfo, nullptr, &mVertexBufferMemory));
+        NGL_LOGI("mVertexBufferMemory: %p", reinterpret_cast<void*>(mVertexBufferMemory));
+
+        NVK_CHECK(vkBindBufferMemory(mDevice, mVertexBuffer, mVertexBufferMemory, 0));
+
+        void* data;
+        NVK_CHECK(vkMapMemory(mDevice, mVertexBufferMemory, 0, bufferCreateInfo.size, 0, &data));
+        memcpy(data, kVertices.data(), bufferCreateInfo.size);
+        vkUnmapMemory(mDevice, mVertexBufferMemory);
+    }
+
+    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags) {
+        VkPhysicalDeviceMemoryProperties memoryProperties;
+        vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memoryProperties);
+
+        for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) &&
+                (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags) {
+                return i;
+            }
+        }
+        NGL_ABORT("No memory type for typeFilter: %xu", typeFilter);
+    }
+
     void createCommandBuffers() {
         mCommandBuffers.resize(kMaxFramesInFlight);
 
@@ -747,6 +796,10 @@ private:
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
 
+        VkBuffer vertexBuffers[] = {mVertexBuffer};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
@@ -761,7 +814,7 @@ private:
         scissor.extent = mSwapchainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vkCmdDraw(commandBuffer, static_cast<uint32_t>(kVertices.size()), 1, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -864,6 +917,8 @@ private:
             vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
         }
+        vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
+        vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
         vkDestroyPipeline(mDevice, mPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
@@ -903,6 +958,8 @@ private:
     VkPipeline mPipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
+    VkBuffer mVertexBuffer;
+    VkDeviceMemory mVertexBufferMemory;
     std::vector<VkCommandBuffer> mCommandBuffers;
     std::vector<VkSemaphore> mImageAvailableSemaphores;
     std::vector<VkSemaphore> mRenderFinishedSemaphores;

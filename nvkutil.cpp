@@ -1041,3 +1041,73 @@ void nvkDumpPresentModes(const std::vector<VkPresentModeKHR>& modes, const char*
         NGL_LOGI("%s%s", indent, presentModeToString(mode));
     }
 }
+
+static void dumpMemoryPropertyFlags(VkMemoryPropertyFlags flags, const char* indent) {
+    if (flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_HOST_VISIBLE_BIT", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_HOST_COHERENT_BIT", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_HOST_CACHED_BIT", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_PROTECTED_BIT) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_PROTECTED_BIT", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD", indent);
+    }
+    if (flags & VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV) {
+        NGL_LOGI("%sVK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV", indent);
+    }
+}
+
+static void dumpMemoryHeapFlags(VkMemoryHeapFlags flags, const char* indent) {
+    if (flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) {
+        NGL_LOGI("%sVK_MEMORY_HEAP_DEVICE_LOCAL_BIT", indent);
+    }
+    if (flags & VK_MEMORY_HEAP_MULTI_INSTANCE_BIT) {
+        NGL_LOGI("%sVK_MEMORY_HEAP_MULTI_INSTANCE_BIT", indent);
+    }
+}
+
+void nvkDumpPhysicalDeviceMemoryProperties(VkPhysicalDevice device) {
+    NGL_LOGI("Physical device memory properties for device: %p", reinterpret_cast<void*>(device));
+
+    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(device, &physicalDeviceMemoryProperties);
+
+    NGL_LOGI("  memoryTypes: (%u)", physicalDeviceMemoryProperties.memoryTypeCount);
+    for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; i++) {
+        const VkMemoryType& memoryType = physicalDeviceMemoryProperties.memoryTypes[i];
+        NGL_LOGI("    %u:", i);
+        NGL_LOGI("      propertyFlags:");
+        dumpMemoryPropertyFlags(memoryType.propertyFlags, "        ");
+        NGL_LOGI("      heapIndex: %u", memoryType.heapIndex);
+    }
+
+    NGL_LOGI("  memoryHeaps: (%u)", physicalDeviceMemoryProperties.memoryHeapCount);
+    for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryHeapCount; i++) {
+        const VkMemoryHeap& memoryHeap = physicalDeviceMemoryProperties.memoryHeaps[i];
+        NGL_LOGI("    %u:", i);
+        NGL_LOGI("      size: %" PRIu64, memoryHeap.size);
+        NGL_LOGI("      flags:");
+        dumpMemoryHeapFlags(memoryHeap.flags, "        ");
+    }
+}
+
+void nvkDumpMemoryRequirements(const VkMemoryRequirements& memoryRequirements, const char* indent) {
+    NGL_LOGI("%ssize:           %" PRIu64, indent, memoryRequirements.size);
+    NGL_LOGI("%salignment:      %" PRIu64, indent, memoryRequirements.alignment);
+    NGL_LOGI("%smemoryTypeBits: 0x%04x", indent, memoryRequirements.memoryTypeBits);
+}
