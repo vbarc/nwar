@@ -59,10 +59,13 @@ struct Vertex {
 };
 
 const std::vector<Vertex> kVertices = {
-        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},   //
-        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}   //
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},  //
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},   //
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},    //
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}    //
 };
+
+const std::vector<uint16_t> kIndices = {0, 1, 2, 2, 3, 0};
 
 class HelloTriangleApplication {
 public:
@@ -114,6 +117,7 @@ private:
         createCommandPool();
         nvkDumpPhysicalDeviceMemoryProperties(mPhysicalDevice);
         createVertexBuffer();
+        createIndexBuffer();
         createCommandBuffers();
         createSyncObjects();
     }
@@ -717,7 +721,7 @@ private:
     void createVertexBuffer() {
         VkDeviceSize bufferSize = sizeof(Vertex) * kVertices.size();
 
-        NGL_LOGI("Creating staging buffer...");
+        NGL_LOGI("Creating staging buffer for vertex buffer...");
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -734,6 +738,31 @@ private:
                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
 
         copyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
+
+        vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+        vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+    }
+
+    void createIndexBuffer() {
+        VkDeviceSize bufferSize = sizeof(uint16_t) * kIndices.size();
+
+        NGL_LOGI("Creating staging buffer for index buffer...");
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                     stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, kIndices.data(), bufferSize);
+        vkUnmapMemory(mDevice, stagingBufferMemory);
+
+        NGL_LOGI("Creating index buffer...");
+        createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
+
+        copyBuffer(stagingBuffer, mIndexBuffer, bufferSize);
 
         vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
         vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -853,6 +882,8 @@ private:
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
+        vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
@@ -867,7 +898,7 @@ private:
         scissor.extent = mSwapchainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        vkCmdDraw(commandBuffer, static_cast<uint32_t>(kVertices.size()), 1, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(kIndices.size()), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -970,6 +1001,8 @@ private:
             vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
         }
+        vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
+        vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
         vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
         vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
@@ -1013,6 +1046,8 @@ private:
     VkCommandPool mCommandPool;
     VkBuffer mVertexBuffer;
     VkDeviceMemory mVertexBufferMemory;
+    VkBuffer mIndexBuffer;
+    VkDeviceMemory mIndexBufferMemory;
     std::vector<VkCommandBuffer> mCommandBuffers;
     std::vector<VkSemaphore> mImageAvailableSemaphores;
     std::vector<VkSemaphore> mRenderFinishedSemaphores;
