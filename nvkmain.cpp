@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstdlib>
 #include <limits>
 #include <optional>
@@ -15,7 +16,9 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "nfile.h"
 #include "nglassert.h"
@@ -67,6 +70,12 @@ const std::vector<Vertex> kVertices = {
 
 const std::vector<uint16_t> kIndices = {0, 1, 2, 2, 3, 0};
 
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
 class HelloTriangleApplication {
 public:
     void run() {
@@ -112,12 +121,14 @@ private:
         createSwapchain();
         createSwapchainImageViews();
         createRenderPass();
+        createDescriptorSetLayout();
         createGraphicsPipeline();
         createFramebuffers();
         createCommandPool();
         nvkDumpPhysicalDeviceMemoryProperties(mPhysicalDevice);
         createVertexBuffer();
         createIndexBuffer();
+        createUniformBuffers();
         createCommandBuffers();
         createSyncObjects();
     }
@@ -534,6 +545,22 @@ private:
         NGL_LOGI("mRenderPass: %p", reinterpret_cast<void*>(mRenderPass));
     }
 
+    void createDescriptorSetLayout() {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr;  // Optional
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &uboLayoutBinding;
+        NVK_CHECK(vkCreateDescriptorSetLayout(mDevice, &layoutInfo, nullptr, &mDescriptorSetLayout));
+        NGL_LOGI("mDescriptorSetLayout: %p", reinterpret_cast<void*>(mDescriptorSetLayout));
+    }
+
     void createGraphicsPipeline() {
         auto vertShaderCode = nReadFile("shaders/vert.spv");
         auto fragShaderCode = nReadFile("shaders/frag.spv");
@@ -644,8 +671,8 @@ private:
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.setLayoutCount = 0;             // Optional
-        pipelineLayoutCreateInfo.pSetLayouts = nullptr;          // Optional
+        pipelineLayoutCreateInfo.setLayoutCount = 1;
+        pipelineLayoutCreateInfo.pSetLayouts = &mDescriptorSetLayout;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;     // Optional
         pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;  // Optional
 
@@ -766,6 +793,21 @@ private:
 
         vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
         vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+    }
+
+    void createUniformBuffers() {
+        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+        mUniformBuffers.resize(kMaxFramesInFlight);
+        mUniformBufferMemories.resize(kMaxFramesInFlight);
+        mUniformBufferMappedAddresses.resize(kMaxFramesInFlight);
+
+        for (size_t i = 0; i < kMaxFramesInFlight; i++) {
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i],
+                         mUniformBufferMemories[i]);
+            vkMapMemory(mDevice, mUniformBufferMemories[i], 0, bufferSize, 0, &mUniformBufferMappedAddresses[i]);
+        }
     }
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryPropertyFlags,
@@ -956,6 +998,8 @@ private:
 
         recordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 
+        updateUniformBuffer(mCurrentFrame);
+
         VkSemaphore waitSemaphores[] = {mImageAvailableSemaphores[mCurrentFrame]};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphores[mCurrentFrame]};
@@ -994,12 +1038,31 @@ private:
         mCurrentFrame = (mCurrentFrame + 1) % kMaxFramesInFlight;
     }
 
+    void updateUniformBuffer(uint32_t currentImage) {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        UniformBufferObject ubo{};
+        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.proj = glm::perspective(glm::radians(45.0f),
+                                    mSwapchainExtent.width / static_cast<float>(mSwapchainExtent.height), 0.1f, 10.0f);
+        ubo.proj[1][1] *= -1;
+
+        memcpy(mUniformBufferMappedAddresses[currentImage], &ubo, sizeof(ubo));
+    }
+
     void terminate() {
         cleanupSwapchain();
         for (size_t i = 0; i < kMaxFramesInFlight; i++) {
             vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
             vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
+        }
+        for (size_t i = 0; i < kMaxFramesInFlight; i++) {
+            vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
+            vkFreeMemory(mDevice, mUniformBufferMemories[i], nullptr);
         }
         vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
         vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
@@ -1008,6 +1071,7 @@ private:
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
         vkDestroyPipeline(mDevice, mPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
+        vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
         vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
         vkDestroyDevice(mDevice, nullptr);
         vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
@@ -1040,6 +1104,7 @@ private:
     VkExtent2D mSwapchainExtent;
     std::vector<VkImageView> mSwapchainImageViews;
     VkRenderPass mRenderPass;
+    VkDescriptorSetLayout mDescriptorSetLayout;
     VkPipelineLayout mPipelineLayout;
     VkPipeline mPipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
@@ -1048,6 +1113,9 @@ private:
     VkDeviceMemory mVertexBufferMemory;
     VkBuffer mIndexBuffer;
     VkDeviceMemory mIndexBufferMemory;
+    std::vector<VkBuffer> mUniformBuffers;
+    std::vector<VkDeviceMemory> mUniformBufferMemories;
+    std::vector<void*> mUniformBufferMappedAddresses;
     std::vector<VkCommandBuffer> mCommandBuffers;
     std::vector<VkSemaphore> mImageAvailableSemaphores;
     std::vector<VkSemaphore> mRenderFinishedSemaphores;
