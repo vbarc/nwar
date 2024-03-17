@@ -18,6 +18,8 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#include <stb_image.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -127,6 +129,7 @@ private:
         createFramebuffers();
         createCommandPool();
         nvkDumpPhysicalDeviceMemoryProperties(mPhysicalDevice);
+        createTextureImage();
         createVertexBuffer();
         createIndexBuffer();
         createUniformBuffers();
@@ -748,6 +751,169 @@ private:
         NGL_LOGI("mCommandPool: %p", reinterpret_cast<void*>(mCommandPool));
     }
 
+    VkCommandBuffer beginSingleTimeCommands() {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = mCommandPool;
+        allocInfo.commandBufferCount = 1;
+        VkCommandBuffer commandBuffer;
+        NVK_CHECK(vkAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer));
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        NVK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+
+        return commandBuffer;
+    }
+
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+        NVK_CHECK(vkEndCommandBuffer(commandBuffer));
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+        NVK_CHECK(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
+
+        NVK_CHECK(vkQueueWaitIdle(mGraphicsQueue));
+
+        vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
+    }
+
+    void createTextureImage() {
+        int texWidth, texHeight, texChannels;
+        stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        NGL_VERIFY(pixels);
+        VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+        NGL_LOGI("Creating staging buffer for texture image...");
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                     stagingBufferMemory);
+
+        void* data;
+        vkMapMemory(mDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, pixels, static_cast<size_t>(imageSize));
+        vkUnmapMemory(mDevice, stagingBufferMemory);
+
+        stbi_image_free(pixels);
+
+        NGL_LOGI("Creating texture image...");
+        createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                    VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                    mTextureImage, mTextureImageMemory);
+
+        transitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
+                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        copyBufferToImage(stagingBuffer, mTextureImage, texWidth, texHeight);
+
+        transitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+        vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+    }
+
+    void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+                     VkMemoryPropertyFlags memoryPropertyFlags, VkImage& image, VkDeviceMemory& imageMemory) {
+        VkImageCreateInfo imageCreateInfo{};
+        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+        imageCreateInfo.extent.width = width;
+        imageCreateInfo.extent.height = height;
+        imageCreateInfo.extent.depth = 1;
+        imageCreateInfo.mipLevels = 1;
+        imageCreateInfo.arrayLayers = 1;
+        imageCreateInfo.format = format;
+        imageCreateInfo.tiling = tiling;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        imageCreateInfo.usage = usage;
+        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        imageCreateInfo.flags = 0;  // Optional
+        NVK_CHECK(vkCreateImage(mDevice, &imageCreateInfo, nullptr, &image));
+        NGL_LOGI("Created image: %p", reinterpret_cast<void*>(image));
+
+        VkMemoryRequirements memoryRequirements;
+        vkGetImageMemoryRequirements(mDevice, image, &memoryRequirements);
+        NGL_LOGI("Memory requirements for image %p:", reinterpret_cast<void*>(image));
+        nvkDumpMemoryRequirements(memoryRequirements, "  ");
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memoryRequirements.size;
+        allocInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, memoryPropertyFlags);
+
+        NVK_CHECK(vkAllocateMemory(mDevice, &allocInfo, nullptr, &imageMemory));
+        NGL_LOGI("Created image memory: %p", reinterpret_cast<void*>(imageMemory));
+
+        NVK_CHECK(vkBindImageMemory(mDevice, image, imageMemory, 0));
+    }
+
+    void transitionImageLayout(VkImage image, VkFormat /*format*/, VkImageLayout oldLayout, VkImageLayout newLayout) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.oldLayout = oldLayout;
+        barrier.newLayout = newLayout;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = image;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+
+        VkPipelineStageFlags sourceStage;
+        VkPipelineStageFlags destinationStage;
+
+        if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+                   newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } else {
+            NGL_ABORT("Unsupported image layout transition");
+        }
+
+        vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        endSingleTimeCommands(commandBuffer);
+    }
+
+    void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+        VkBufferImageCopy region{};
+        region.bufferOffset = 0;
+        region.bufferRowLength = 0;
+        region.bufferImageHeight = 0;
+        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        region.imageSubresource.mipLevel = 0;
+        region.imageSubresource.baseArrayLayer = 0;
+        region.imageSubresource.layerCount = 1;
+        region.imageOffset = {0, 0, 0};
+        region.imageExtent = {width, height, 1};
+        vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+        endSingleTimeCommands(commandBuffer);
+    }
+
     void createVertexBuffer() {
         VkDeviceSize bufferSize = sizeof(Vertex) * kVertices.size();
 
@@ -806,6 +972,7 @@ private:
         mUniformBufferMappedAddresses.resize(kMaxFramesInFlight);
 
         for (size_t i = 0; i < kMaxFramesInFlight; i++) {
+            NGL_LOGI("Creating uniform buffer %zu...", i);
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i],
                          mUniformBufferMemories[i]);
@@ -842,19 +1009,7 @@ private:
     }
 
     void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = mCommandPool;
-        allocInfo.commandBufferCount = 1;
-
-        VkCommandBuffer commandBuffer;
-        NVK_CHECK(vkAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer));
-
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        NVK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = 0;  // Optional
@@ -862,17 +1017,7 @@ private:
         copyRegion.size = size;
         vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-        NVK_CHECK(vkEndCommandBuffer(commandBuffer));
-
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
-
-        NVK_CHECK(vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE));
-        NVK_CHECK(vkQueueWaitIdle(mGraphicsQueue));
-
-        vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
+        endSingleTimeCommands(commandBuffer);
     }
 
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags propertyFlags) {
@@ -952,11 +1097,11 @@ private:
     }
 
     void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-        VkCommandBufferBeginInfo bufferbeginInfo{};
-        bufferbeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        bufferbeginInfo.flags = 0;                   // Optional
-        bufferbeginInfo.pInheritanceInfo = nullptr;  // Optional
-        NVK_CHECK(vkBeginCommandBuffer(commandBuffer, &bufferbeginInfo));
+        VkCommandBufferBeginInfo bufferBeginInfo{};
+        bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        bufferBeginInfo.flags = 0;                   // Optional
+        bufferBeginInfo.pInheritanceInfo = nullptr;  // Optional
+        NVK_CHECK(vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo));
 
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1123,6 +1268,8 @@ private:
         vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
         vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
         vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
+        vkDestroyImage(mDevice, mTextureImage, nullptr);
+        vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
         vkDestroyPipeline(mDevice, mPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
@@ -1164,6 +1311,8 @@ private:
     VkPipeline mPipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
+    VkImage mTextureImage;
+    VkDeviceMemory mTextureImageMemory;
     VkBuffer mVertexBuffer;
     VkDeviceMemory mVertexBufferMemory;
     VkBuffer mIndexBuffer;
