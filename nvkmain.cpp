@@ -129,6 +129,8 @@ private:
         createVertexBuffer();
         createIndexBuffer();
         createUniformBuffers();
+        createDescriptorPool();
+        createDescriptorSets();
         createCommandBuffers();
         createSyncObjects();
     }
@@ -632,7 +634,7 @@ private:
         rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizationStateCreateInfo.lineWidth = 1.0f;
         rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-        rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
         rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;  // Optional
         rasterizationStateCreateInfo.depthBiasClamp = 0.0f;           // Optional
@@ -885,6 +887,54 @@ private:
         NGL_ABORT("No memory type for typeFilter: %xu", typeFilter);
     }
 
+    void createDescriptorPool() {
+        VkDescriptorPoolSize poolSize{};
+        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize.descriptorCount = kMaxFramesInFlight;
+
+        VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = kMaxFramesInFlight;
+        NVK_CHECK(vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPool));
+        NGL_LOGI("mDescriptorPool: %p", reinterpret_cast<void*>(mDescriptorPool));
+    }
+
+    void createDescriptorSets() {
+        mDescriptorSets.resize(kMaxFramesInFlight);
+
+        std::vector<VkDescriptorSetLayout> layouts(kMaxFramesInFlight, mDescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = mDescriptorPool;
+        allocInfo.descriptorSetCount = kMaxFramesInFlight;
+        allocInfo.pSetLayouts = layouts.data();
+
+        NVK_CHECK(vkAllocateDescriptorSets(mDevice, &allocInfo, mDescriptorSets.data()));
+
+        for (size_t i = 0; i < kMaxFramesInFlight; i++) {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = mUniformBuffers[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
+
+            VkWriteDescriptorSet descriptorWrite{};
+            descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrite.dstSet = mDescriptorSets[i];
+            descriptorWrite.dstBinding = 0;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.pBufferInfo = &bufferInfo;
+            descriptorWrite.pImageInfo = nullptr;        // Optional
+            descriptorWrite.pTexelBufferView = nullptr;  // Optional
+
+            vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
+        }
+    }
+
     void createCommandBuffers() {
         mCommandBuffers.resize(kMaxFramesInFlight);
 
@@ -939,6 +989,9 @@ private:
         scissor.offset = {0, 0};
         scissor.extent = mSwapchainExtent;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+                                &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(kIndices.size()), 1, 0, 0, 0);
 
@@ -1060,6 +1113,7 @@ private:
             vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
         }
+        vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
         for (size_t i = 0; i < kMaxFramesInFlight; i++) {
             vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
             vkFreeMemory(mDevice, mUniformBufferMemories[i], nullptr);
@@ -1116,6 +1170,8 @@ private:
     std::vector<VkBuffer> mUniformBuffers;
     std::vector<VkDeviceMemory> mUniformBufferMemories;
     std::vector<void*> mUniformBufferMappedAddresses;
+    VkDescriptorPool mDescriptorPool;
+    std::vector<VkDescriptorSet> mDescriptorSets;
     std::vector<VkCommandBuffer> mCommandBuffers;
     std::vector<VkSemaphore> mImageAvailableSemaphores;
     std::vector<VkSemaphore> mRenderFinishedSemaphores;
