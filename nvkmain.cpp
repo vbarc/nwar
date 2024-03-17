@@ -253,6 +253,12 @@ private:
             return false;
         }
 
+        VkPhysicalDeviceFeatures physicalDeviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &physicalDeviceFeatures);
+        if (!physicalDeviceFeatures.samplerAnisotropy) {
+            return false;
+        }
+
         return true;
     }
 
@@ -327,6 +333,7 @@ private:
         }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
+        deviceFeatures.samplerAnisotropy = VK_TRUE;
 
         std::vector<const char*> requiredLayers;
         nvkAppendDebugLayersIfNecessary(requiredLayers);
