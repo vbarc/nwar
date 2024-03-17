@@ -130,6 +130,7 @@ private:
         createCommandPool();
         nvkDumpPhysicalDeviceMemoryProperties(mPhysicalDevice);
         createTextureImage();
+        createTextureImageView();
         createVertexBuffer();
         createIndexBuffer();
         createUniformBuffers();
@@ -492,22 +493,7 @@ private:
         NGL_LOGI("mSwapchainImageViews:");
         mSwapchainImageViews.resize(mSwapchainImages.size());
         for (size_t i = 0; i < mSwapchainImages.size(); i++) {
-            VkImageViewCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            createInfo.image = mSwapchainImages[i];
-            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            createInfo.format = mSwapchainFormat;
-            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            createInfo.subresourceRange.baseMipLevel = 0;
-            createInfo.subresourceRange.levelCount = 1;
-            createInfo.subresourceRange.baseArrayLayer = 0;
-            createInfo.subresourceRange.layerCount = 1;
-            NVK_CHECK(vkCreateImageView(mDevice, &createInfo, nullptr, &mSwapchainImageViews[i]));
-            NGL_LOGI("  %p", reinterpret_cast<void*>(mSwapchainImageViews[i]));
+            mSwapchainImageViews[i] = createImageView(mSwapchainImages[i], mSwapchainFormat);
         }
     }
     void createRenderPass() {
@@ -914,6 +900,26 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
+    void createTextureImageView() {
+        mTextureImageView = createImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB);
+    }
+
+    VkImageView createImageView(VkImage image, VkFormat format) {
+        VkImageViewCreateInfo viewCreateInfo{};
+        viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewCreateInfo.image = image;
+        viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewCreateInfo.format = format;
+        viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewCreateInfo.subresourceRange.baseMipLevel = 0;
+        viewCreateInfo.subresourceRange.levelCount = 1;
+        viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        viewCreateInfo.subresourceRange.layerCount = 1;
+        VkImageView result;
+        NVK_CHECK(vkCreateImageView(mDevice, &viewCreateInfo, nullptr, &result));
+        return result;
+    }
+
     void createVertexBuffer() {
         VkDeviceSize bufferSize = sizeof(Vertex) * kVertices.size();
 
@@ -1268,6 +1274,7 @@ private:
         vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
         vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
         vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
+        vkDestroyImageView(mDevice, mTextureImageView, nullptr);
         vkDestroyImage(mDevice, mTextureImage, nullptr);
         vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
@@ -1313,6 +1320,7 @@ private:
     VkCommandPool mCommandPool;
     VkImage mTextureImage;
     VkDeviceMemory mTextureImageMemory;
+    VkImageView mTextureImageView;
     VkBuffer mVertexBuffer;
     VkDeviceMemory mVertexBufferMemory;
     VkBuffer mIndexBuffer;
