@@ -35,6 +35,8 @@ constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
 const std::vector<const char*> kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 constexpr int kMaxFramesInFlight = 2;
+const char* const kModelPath = "models/viking_room.obj";
+const char* const kTexturePath = "textures/viking_room.png";
 
 struct Vertex {
     glm::vec3 pos;
@@ -872,7 +874,7 @@ private:
 
     void createTextureImage() {
         int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc* pixels = stbi_load(kTexturePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         NGL_VERIFY(pixels);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
