@@ -24,6 +24,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 #include "nfile.h"
 #include "nglassert.h"
 #include "ngllog.h"
@@ -71,23 +74,6 @@ struct Vertex {
 
         return attributeDescriptions;
     }
-};
-
-const std::vector<Vertex> kVertices = {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},  //
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},   //
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},    //
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},   //
-
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},  //
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},   //
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},    //
-        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}    //
-};
-
-const std::vector<uint16_t> kIndices = {
-        0, 1, 2, 2, 3, 0,  //
-        4, 5, 6, 6, 7, 4,  //
 };
 
 struct UniformBufferObject {
@@ -150,6 +136,7 @@ private:
         createTextureImage();
         createTextureImageView();
         createTextureSampler();
+        loadModel();
         createVertexBuffer();
         createIndexBuffer();
         createUniformBuffers();
@@ -1064,8 +1051,40 @@ private:
         NVK_CHECK(vkCreateSampler(mDevice, &samplerCreateInfo, nullptr, &mTextureSampler));
     }
 
+    void loadModel() {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, kModelPath)) {
+            NGL_ABORT("tinyobj::LoadObj failed, warn: %s, err: %s", warn.c_str(), err.c_str());
+        }
+
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                Vertex vertex{};
+
+                vertex.pos = {
+                        attrib.vertices[3 * index.vertex_index + 0],  //
+                        attrib.vertices[3 * index.vertex_index + 1],  //
+                        attrib.vertices[3 * index.vertex_index + 2]   //
+                };
+
+                vertex.texCoord = {
+                        attrib.texcoords[2 * index.texcoord_index + 0],       //
+                        1.0 - attrib.texcoords[2 * index.texcoord_index + 1]  //
+                };
+
+                vertex.color = {1.0f, 1.0f, 1.0f};
+
+                mVertices.push_back(vertex);
+                mIndices.push_back(static_cast<uint32_t>(mIndices.size()));
+            }
+        }
+    }
+
     void createVertexBuffer() {
-        VkDeviceSize bufferSize = sizeof(Vertex) * kVertices.size();
+        VkDeviceSize bufferSize = sizeof(Vertex) * mVertices.size();
 
         NGL_LOGI("Creating staging buffer for vertex buffer...");
         VkBuffer stagingBuffer;
@@ -1076,7 +1095,7 @@ private:
 
         void* data;
         vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, kVertices.data(), bufferSize);
+        memcpy(data, mVertices.data(), bufferSize);
         vkUnmapMemory(mDevice, stagingBufferMemory);
 
         NGL_LOGI("Creating vertex buffer...");
@@ -1090,7 +1109,7 @@ private:
     }
 
     void createIndexBuffer() {
-        VkDeviceSize bufferSize = sizeof(uint16_t) * kIndices.size();
+        VkDeviceSize bufferSize = sizeof(uint32_t) * mIndices.size();
 
         NGL_LOGI("Creating staging buffer for index buffer...");
         VkBuffer stagingBuffer;
@@ -1101,7 +1120,7 @@ private:
 
         void* data;
         vkMapMemory(mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, kIndices.data(), bufferSize);
+        memcpy(data, mIndices.data(), bufferSize);
         vkUnmapMemory(mDevice, stagingBufferMemory);
 
         NGL_LOGI("Creating index buffer...");
@@ -1288,7 +1307,7 @@ private:
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -1307,7 +1326,7 @@ private:
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                 &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(kIndices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1492,6 +1511,8 @@ private:
     VkDeviceMemory mTextureImageMemory;
     VkImageView mTextureImageView;
     VkSampler mTextureSampler;
+    std::vector<Vertex> mVertices;
+    std::vector<uint32_t> mIndices;
     VkBuffer mVertexBuffer;
     VkDeviceMemory mVertexBufferMemory;
     VkBuffer mIndexBuffer;
