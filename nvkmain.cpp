@@ -10,6 +10,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #define VK_USE_PLATFORM_WIN32_KHR
@@ -23,6 +24,8 @@
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -74,7 +77,23 @@ struct Vertex {
 
         return attributeDescriptions;
     }
+
+    bool operator==(const Vertex& other) const {
+        return pos == other.pos && color == other.color && texCoord == other.texCoord;
+    }
 };
+
+namespace std {
+
+template <>
+struct hash<Vertex> {
+    size_t operator()(Vertex const& vertex) const {
+        return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+               (hash<glm::vec2>()(vertex.texCoord) << 1);
+    }
+};
+
+}  // namespace std
 
 struct UniformBufferObject {
     glm::mat4 model;
@@ -1060,6 +1079,8 @@ private:
             NGL_ABORT("tinyobj::LoadObj failed, warn: %s, err: %s", warn.c_str(), err.c_str());
         }
 
+        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
         for (const auto& shape : shapes) {
             for (const auto& index : shape.mesh.indices) {
                 Vertex vertex{};
@@ -1077,8 +1098,11 @@ private:
 
                 vertex.color = {1.0f, 1.0f, 1.0f};
 
-                mVertices.push_back(vertex);
-                mIndices.push_back(static_cast<uint32_t>(mIndices.size()));
+                if (uniqueVertices.count(vertex) == 0) {
+                    uniqueVertices[vertex] = static_cast<uint32_t>(mVertices.size());
+                    mVertices.push_back(vertex);
+                }
+                mIndices.push_back(uniqueVertices[vertex]);
             }
         }
     }
