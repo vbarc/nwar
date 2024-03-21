@@ -2,7 +2,6 @@
 #include "nvkmain.h"
 
 int main() {
-    // TODO: Finish Vulkan tutorial
     // TODO: Convert to Vulkan
     // TODO: Gamma correction
     // TODO: Shadows
