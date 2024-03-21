@@ -615,8 +615,8 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto vertShaderCode = nReadFile("shaders/vert.spv");
-        auto fragShaderCode = nReadFile("shaders/frag.spv");
+        auto vertShaderCode = nReadFile("out/vertex.spv");
+        auto fragShaderCode = nReadFile("out/fragment.spv");
         NGL_LOGI("vertShaderCode.size: %zu", vertShaderCode.size());
         NGL_LOGI("fragShaderCode.size: %zu", fragShaderCode.size());
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);

@@ -82,9 +82,15 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include=".gitignore" />
-    <None Include="shaders\shader.vert" />
-    <None Include="shaders\shader.frag" />
-    <None Include="compile.sh" />
+    <None Include="compile_shaders.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="fragment.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="vertex.glsl">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nglerr.h">
