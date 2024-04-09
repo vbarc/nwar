@@ -87,8 +87,7 @@ struct hash<Vertex> {
 }  // namespace std
 
 struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
+    glm::mat4 model_view;
     glm::mat4 proj;
 };
 
@@ -1485,14 +1484,12 @@ private:
     void updateUniformBuffer(uint32_t currentImage) {
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        // float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         UniformBufferObject ubo{};
-        ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f),
-                                    mSwapchainExtent.width / static_cast<float>(mSwapchainExtent.height), 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1;
+        ubo.model_view = mCamera.getModelViewMatrix();
+        ubo.proj = glm::perspective(45.0f, mSwapchainExtent.width / static_cast<float>(mSwapchainExtent.height), 0.1f,
+                                    1000.0f);
 
         memcpy(mUniformBufferMappedAddresses[currentImage], &ubo, sizeof(ubo));
     }
