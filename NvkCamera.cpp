@@ -1,8 +1,8 @@
-#include "NglCamera.h"
+#include "NvkCamera.h"
 
 #include <algorithm>
 
-#include "nglgl.h"
+#include "nvkvk.h"
 
 constexpr float kAcceleration = 8.0f;
 constexpr float kDeceleration = 6.0f;
@@ -10,12 +10,12 @@ constexpr float kFasterFactor = 8.0f;
 constexpr float kMaxSpeed = 1.0f;
 constexpr float kRotationFactor = 2.0f;
 
-NglCamera::NglCamera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
+NvkCamera::NvkCamera(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
     : mOriginalPosition(position), mOriginalTarget(target), mOriginalUp(up) {
     reset();
 }
 
-bool NglCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
+bool NvkCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
     bool handled = false;
     bool pressed = action != GLFW_RELEASE;
     if (key == GLFW_KEY_W) {
@@ -50,7 +50,7 @@ bool NglCamera::onKeyEvent(int key, int /*scancode*/, int action, int mods) {
     return handled;
 }
 
-bool NglCamera::onMouseButtonEvent(GLFWwindow* window, int button, int action, int /*mods*/) {
+bool NvkCamera::onMouseButtonEvent(GLFWwindow* window, int button, int action, int /*mods*/) {
     bool handled = false;
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         mRotationActive = action == GLFW_PRESS;
@@ -66,7 +66,7 @@ bool NglCamera::onMouseButtonEvent(GLFWwindow* window, int button, int action, i
     return handled;
 }
 
-bool NglCamera::onMouseMotionEvent(GLFWwindow* window, double x, double y) {
+bool NvkCamera::onMouseMotionEvent(GLFWwindow* window, double x, double y) {
     bool handled = false;
     if (mRotationActive) {
         glm::vec2 mousePosition = glm::vec2(x, y);
@@ -84,7 +84,7 @@ bool NglCamera::onMouseMotionEvent(GLFWwindow* window, double x, double y) {
     return handled;
 }
 
-void NglCamera::onNextFrame(double time) {
+void NvkCamera::onNextFrame(double time) {
     float timeDeltaSeconds = static_cast<float>(time - mPreviousFrameTime);
     mPreviousFrameTime = time;
 
@@ -132,19 +132,19 @@ void NglCamera::onNextFrame(double time) {
     mPosition += mVelocity * timeDeltaSeconds;
 }
 
-glm::mat4 NglCamera::getModelViewMatrix() const {
+glm::mat4 NvkCamera::getModelViewMatrix() const {
     const glm::mat4 t = glm::translate(glm::mat4(1.0f), -mPosition);
     const glm::mat4 r = glm::mat4_cast(mLookAtOrientation);
     return r * t;
 }
 
-void NglCamera::reset() {
+void NvkCamera::reset() {
     mPosition = mOriginalPosition;
     mLookAtOrientation = glm::lookAt(mOriginalPosition, mOriginalTarget, mOriginalUp);
     mVelocity = glm::vec3(0.0f);
 }
 
-void NglCamera::resetUp() {
+void NvkCamera::resetUp() {
     glm::mat4 orientation = glm::mat4_cast(mLookAtOrientation);
     glm::vec3 dir = -glm::vec3(orientation[0][2], orientation[1][2], orientation[2][2]);
     mLookAtOrientation = glm::lookAt(mPosition, mPosition + dir, mOriginalUp);

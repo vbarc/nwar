@@ -205,6 +205,7 @@
     <ClCompile Include="NglTerrainLayer.cpp" />
     <ClCompile Include="NglTexture.cpp" />
     <ClCompile Include="NglVertexArray.cpp" />
+    <ClCompile Include="NvkCamera.cpp" />
     <ClCompile Include="nvkdbg.cpp" />
     <ClCompile Include="nvkerr.cpp" />
     <ClCompile Include="nvkmain.cpp" />
@@ -242,10 +243,12 @@
     <ClInclude Include="nglvert.h" />
     <ClInclude Include="NglVertex.h" />
     <ClInclude Include="NglVertexArray.h" />
+    <ClInclude Include="NvkCamera.h" />
     <ClInclude Include="nvkdbg.h" />
     <ClInclude Include="nvkerr.h" />
     <ClInclude Include="nvkmain.h" />
     <ClInclude Include="nvkutil.h" />
+    <ClInclude Include="nvkvk.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="soloud\soloud.vcxproj">

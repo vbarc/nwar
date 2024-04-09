@@ -13,23 +13,14 @@
 #include <unordered_map>
 #include <vector>
 
-#define VK_USE_PLATFORM_WIN32_KHR
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
+//
+#include "nvkvk.h"
+//
+
+#include "NvkCamera.h"
 #include "nfile.h"
 #include "nglassert.h"
 #include "ngllog.h"
@@ -139,13 +130,40 @@ private:
         }
 
         glfwSetWindowUserPointer(mWindow, this);
-        glfwSetFramebufferSizeCallback(mWindow, framebufferResizeCallback);
+
+        glfwSetFramebufferSizeCallback(mWindow, [](GLFWwindow* window, int /*width*/, int /*height*/) {
+            thiz(window)->mFramebufferResized = true;
+        });
+
+        glfwSetKeyCallback(mWindow, [](auto window, int key, int scancode, int action, int mods) {
+            if (key == GLFW_KEY_ESCAPE && action != GLFW_RELEASE) {
+                glfwSetWindowShouldClose(window, GLFW_TRUE);
+                return;
+            }
+            if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
+                // gIsWireFrameEnabled = !gIsWireFrameEnabled;
+                return;
+            }
+            if (thiz(window)->mCamera.onKeyEvent(key, scancode, action, mods)) {
+                return;
+            }
+        });
+
+        glfwSetMouseButtonCallback(mWindow, [](auto window, int button, int action, int mods) {
+            if (thiz(window)->mCamera.onMouseButtonEvent(window, button, action, mods)) {
+                return;
+            }
+        });
+
+        glfwSetCursorPosCallback(mWindow, [](auto window, double x, double y) {
+            if (thiz(window)->mCamera.onMouseMotionEvent(window, x, y)) {
+                return;
+            }
+        });
     }
 
-    static void framebufferResizeCallback(GLFWwindow* window, int /*width*/, int /*height*/) {
-        NGL_LOGI("framebufferResizeCallback");
-        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
-        app->mFramebufferResized = true;
+    static HelloTriangleApplication* thiz(GLFWwindow* window) {
+        return reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
     }
 
     void initVulkan() {
@@ -1396,6 +1414,9 @@ private:
 
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
+            double time = glfwGetTime();
+            mCamera.onNextFrame(time);
+
             glfwPollEvents();
             drawFrame();
         }
@@ -1566,6 +1587,8 @@ private:
     uint32_t mCurrentFrame = 0;
 
     bool mFramebufferResized = false;
+
+    NvkCamera mCamera{glm::vec3(0.0f, 1.6f, 1.6f), glm::vec3(0.0f, 0.6f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
 };
 
 int nvkMain() {

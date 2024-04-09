@@ -78,6 +78,9 @@
     <ClCompile Include="nfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NvkCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -172,6 +175,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NvkCamera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nvkvk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
