@@ -1490,6 +1490,7 @@ private:
         ubo.model_view = mCamera.getModelViewMatrix();
         ubo.proj = glm::perspective(45.0f, mSwapchainExtent.width / static_cast<float>(mSwapchainExtent.height), 0.1f,
                                     1000.0f);
+        ubo.proj[1][1] *= -1;
 
         memcpy(mUniformBufferMappedAddresses[currentImage], &ubo, sizeof(ubo));
     }
