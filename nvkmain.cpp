@@ -33,7 +33,7 @@ constexpr uint32_t kHeight = 1080;
 const std::vector<const char*> kDeviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 constexpr int kMaxFramesInFlight = 2;
 const char* const kModelPath = "models/viking_room.obj";
-const char* const kTexturePath = "textures/viking_room.png";
+const char* const kTexturePath = "terrain-texture.png";
 
 struct Vertex {
     glm::vec3 pos;
@@ -714,7 +714,7 @@ private:
         rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
         rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizationStateCreateInfo.lineWidth = 1.0f;
-        rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE; // VK_CULL_MODE_BACK_BIT;
         rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
         rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;  // Optional
@@ -1101,6 +1101,7 @@ private:
     }
 
     void loadModel() {
+        /*
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -1135,6 +1136,19 @@ private:
                 mIndices.push_back(uniqueVertices[vertex]);
             }
         }
+        */
+        mVertices.push_back(Vertex{{-0.3, 0.35, 0}, {1, 1, 1}, {0, 0}});
+        mVertices.push_back(Vertex{{0.3, 0.95, 0}, {1, 1, 1}, {1, 1}});
+        mVertices.push_back(Vertex{{-0.3, 0.95, 0}, {1, 1, 1}, {0, 0}});
+        mVertices.push_back(Vertex{{-0.3, 0.3, 0}, {1, 1, 1}, {0, 0}});
+        mVertices.push_back(Vertex{{0.3, 0.3, 0}, {1, 1, 1}, {0, 0}});
+        mVertices.push_back(Vertex{{0.3, 0.9, 0}, {1, 1, 1}, {0, 0}});
+        mIndices.push_back(0);
+        mIndices.push_back(1);
+        mIndices.push_back(2);
+        mIndices.push_back(3);
+        mIndices.push_back(4);
+        mIndices.push_back(5);
     }
 
     void createVertexBuffer() {
