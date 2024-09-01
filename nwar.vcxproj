@@ -216,7 +216,8 @@
     <None Include=".clang-format" />
     <None Include=".gitignore" />
     <None Include="compile_shaders.bat" />
-    <None Include="fragment.glsl" />
+    <None Include="shader-fragment-main.glsl" />
+    <None Include="shader-fragment-wireframe.glsl" />
     <None Include="vertex.glsl" />
   </ItemGroup>
   <ItemGroup>

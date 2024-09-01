@@ -177,7 +177,8 @@ private:
         createSwapchainImageViews();
         createRenderPass();
         createDescriptorSetLayout();
-        createGraphicsPipeline();
+        createPipelineLayout();
+        createGraphicsPipelines();
         createCommandPool();
         nvkDumpPhysicalDeviceMemoryProperties(mPhysicalDevice);
         createDepthResources();
@@ -644,9 +645,27 @@ private:
         NGL_LOGI("mDescriptorSetLayout: %p", reinterpret_cast<void*>(mDescriptorSetLayout));
     }
 
-    void createGraphicsPipeline() {
+    void createPipelineLayout() {
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
+        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutCreateInfo.setLayoutCount = 1;
+        pipelineLayoutCreateInfo.pSetLayouts = &mDescriptorSetLayout;
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 0;     // Optional
+        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;  // Optional
+
+        NVK_CHECK(vkCreatePipelineLayout(mDevice, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout));
+        NGL_LOGI("mPipelineLayout: %p", reinterpret_cast<void*>(mPipelineLayout));
+    }
+
+    void createGraphicsPipelines() {
+        createGraphicsPipeline("out/shader-fragment-main.spv", VK_POLYGON_MODE_FILL, &mMainPipeline);
+        // VK_POLYGON_MODE_LINE requires VkPhysicalDeviceFeatures::fillModeNonSolid
+        createGraphicsPipeline("out/shader-fragment-wireframe.spv", VK_POLYGON_MODE_LINE, &mWireframePipeline);
+    }
+
+    void createGraphicsPipeline(const std::string& fragmentShaderPath, VkPolygonMode polygonMode, VkPipeline* pipelineOut) {
         auto vertShaderCode = nReadFile("out/vertex.spv");
-        auto fragShaderCode = nReadFile("out/fragment.spv");
+        auto fragShaderCode = nReadFile(fragmentShaderPath);
         NGL_LOGI("vertShaderCode.size: %zu", vertShaderCode.size());
         NGL_LOGI("fragShaderCode.size: %zu", fragShaderCode.size());
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
@@ -712,7 +731,7 @@ private:
         rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterizationStateCreateInfo.depthClampEnable = VK_FALSE;
         rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
-        rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizationStateCreateInfo.polygonMode = polygonMode;
         rasterizationStateCreateInfo.lineWidth = 1.0f;
         rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE; // VK_CULL_MODE_BACK_BIT;
         rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -764,16 +783,6 @@ private:
         depthStencilStateCreateInfo.front = {};  // Optional
         depthStencilStateCreateInfo.back = {};   // Optional
 
-        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
-        pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.setLayoutCount = 1;
-        pipelineLayoutCreateInfo.pSetLayouts = &mDescriptorSetLayout;
-        pipelineLayoutCreateInfo.pushConstantRangeCount = 0;     // Optional
-        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;  // Optional
-
-        NVK_CHECK(vkCreatePipelineLayout(mDevice, &pipelineLayoutCreateInfo, nullptr, &mPipelineLayout));
-        NGL_LOGI("mPipelineLayout: %p", reinterpret_cast<void*>(mPipelineLayout));
-
         VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
         pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineCreateInfo.stageCount = 2;
@@ -792,8 +801,8 @@ private:
         pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;  // Optional
         pipelineCreateInfo.basePipelineIndex = -1;               // Optional
 
-        NVK_CHECK(vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &mPipeline));
-        NGL_LOGI("mPipeline: %p", reinterpret_cast<void*>(mPipeline));
+        NVK_CHECK(vkCreateGraphicsPipelines(mDevice, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, pipelineOut));
+        NGL_LOGI("*pipelineOut: %p", reinterpret_cast<void*>(*pipelineOut));
 
         vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
         vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
@@ -1369,8 +1378,6 @@ private:
         renderPassBeginInfo.pClearValues = clearValues.data();
         vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
-
         VkBuffer vertexBuffers[] = {mVertexBuffer};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
@@ -1393,6 +1400,12 @@ private:
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
                                 &mDescriptorSets[mCurrentFrame], 0, nullptr);
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mMainPipeline);
+
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mWireframePipeline);
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
 
@@ -1530,7 +1543,8 @@ private:
         vkDestroyImage(mDevice, mTextureImage, nullptr);
         vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
         vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
-        vkDestroyPipeline(mDevice, mPipeline, nullptr);
+        vkDestroyPipeline(mDevice, mWireframePipeline, nullptr);
+        vkDestroyPipeline(mDevice, mMainPipeline, nullptr);
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
         vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
         vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
@@ -1571,7 +1585,8 @@ private:
     VkRenderPass mRenderPass;
     VkDescriptorSetLayout mDescriptorSetLayout;
     VkPipelineLayout mPipelineLayout;
-    VkPipeline mPipeline;
+    VkPipeline mMainPipeline;
+    VkPipeline mWireframePipeline;
     std::vector<VkFramebuffer> mSwapchainFramebuffers;
     VkCommandPool mCommandPool;
     VkImage mDepthImage;

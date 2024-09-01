@@ -88,10 +88,13 @@
     <None Include="compile_shaders.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="fragment.glsl">
+    <None Include="vertex.glsl">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="vertex.glsl">
+    <None Include="shader-fragment-main.glsl">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shader-fragment-wireframe.glsl">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
