@@ -140,7 +140,7 @@ private:
                 return;
             }
             if (key == GLFW_KEY_SPACE && action != GLFW_RELEASE) {
-                // gIsWireFrameEnabled = !gIsWireFrameEnabled;
+                thiz(window)->mIsWireframeEnabled = !thiz(window)->mIsWireframeEnabled;
                 return;
             }
             if (thiz(window)->mCamera.onKeyEvent(key, scancode, action, mods)) {
@@ -1402,12 +1402,12 @@ private:
                                 &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mMainPipeline);
-
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mWireframePipeline);
-
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
+        if (mIsWireframeEnabled) {
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mWireframePipeline);
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mIndices.size()), 1, 0, 0, 0);
+        }
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1616,6 +1616,7 @@ private:
     bool mFramebufferResized = false;
 
     NvkCamera mCamera{glm::vec3(0.0f, 1.6f, 1.6f), glm::vec3(0.0f, 0.6f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
+    bool mIsWireframeEnabled = false;
 };
 
 int nvkMain() {
