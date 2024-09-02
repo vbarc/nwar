@@ -1,10 +1,13 @@
 #version 450
 
-layout(location = 0) in vec3 inNormal;
-layout(location = 1) in vec2 inUv;
+layout(location = 0) in VS_OUT {
+    vec2 uv;
+    vec3 color_factor;
+    vec3 color_offset;
+} fs_in;
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out vec4 out_color;
 
 void main() {
-    outColor = vec4(1, 0, 0, 1);
+    out_color = vec4(1, 0, 0, 1);
 }
