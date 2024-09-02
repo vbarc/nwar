@@ -373,6 +373,7 @@ private:
 
         VkPhysicalDeviceFeatures deviceFeatures{};
         deviceFeatures.samplerAnisotropy = VK_TRUE;
+        deviceFeatures.fillModeNonSolid = VK_TRUE;
 
         std::vector<const char*> requiredLayers;
         nvkAppendDebugLayersIfNecessary(requiredLayers);
