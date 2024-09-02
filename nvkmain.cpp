@@ -37,8 +37,8 @@ const char* const kTexturePath = "terrain-texture.png";
 
 struct Vertex {
     glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
+    glm::vec3 normal;
+    glm::vec2 uv;
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
@@ -59,32 +59,16 @@ struct Vertex {
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
+        attributeDescriptions[1].offset = offsetof(Vertex, normal);
 
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+        attributeDescriptions[2].offset = offsetof(Vertex, uv);
 
         return attributeDescriptions;
     }
-
-    bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }
 };
-
-namespace std {
-
-template <>
-struct hash<Vertex> {
-    size_t operator()(Vertex const& vertex) const {
-        return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-               (hash<glm::vec2>()(vertex.texCoord) << 1);
-    }
-};
-
-}  // namespace std
 
 struct UniformBufferObject {
     glm::mat4 model_view;
@@ -1146,12 +1130,12 @@ private:
             }
         }
         */
-        mVertices.push_back(Vertex{{-0.3, 0.35, 0}, {1, 1, 1}, {0, 0}});
-        mVertices.push_back(Vertex{{0.3, 0.95, 0}, {1, 1, 1}, {1, 1}});
-        mVertices.push_back(Vertex{{-0.3, 0.95, 0}, {1, 1, 1}, {0, 0}});
-        mVertices.push_back(Vertex{{-0.3, 0.3, 0}, {1, 1, 1}, {0, 0}});
-        mVertices.push_back(Vertex{{0.3, 0.3, 0}, {1, 1, 1}, {0, 0}});
-        mVertices.push_back(Vertex{{0.3, 0.9, 0}, {1, 1, 1}, {0, 0}});
+        mVertices.push_back(Vertex{{-0.3, 0.35, 0}, {0, 0, 0}, {0, 0}});
+        mVertices.push_back(Vertex{{0.3, 0.95, 0}, {0, 0, 0}, {1, 1}});
+        mVertices.push_back(Vertex{{-0.3, 0.95, 0}, {0, 0, 0}, {0, 1}});
+        mVertices.push_back(Vertex{{-0.3, 0.3, 0}, {0, 0, 0}, {0, 0}});
+        mVertices.push_back(Vertex{{0.3, 0.3, 0}, {0, 0, 0}, {1, 0}});
+        mVertices.push_back(Vertex{{0.3, 0.9, 0}, {0, 0, 0}, {1, 1}});
         mIndices.push_back(0);
         mIndices.push_back(1);
         mIndices.push_back(2);
