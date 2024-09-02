@@ -1,11 +1,11 @@
-#include "NglDisplacementMap.h"
+#include "NwDisplacementMap.h"
 
 #include <stb_image.h>
 
 #include "nglassert.h"
 #include "ngllog.h"
 
-NglDisplacementMap::NglDisplacementMap(const char* path) {
+NwDisplacementMap::NwDisplacementMap(const char* path) {
     mData = stbi_load(path, &mWidth, &mDepth, nullptr, STBI_grey);
     NGL_ASSERT(mData);
     NGL_ASSERT(mWidth > 0);
@@ -18,19 +18,19 @@ NglDisplacementMap::NglDisplacementMap(const char* path) {
     }
 }
 
-NglDisplacementMap::~NglDisplacementMap() {
+NwDisplacementMap::~NwDisplacementMap() {
     stbi_image_free(mData);
 }
 
-int NglDisplacementMap::width() const {
+int NwDisplacementMap::width() const {
     return mWidth;
 }
 
-int NglDisplacementMap::depth() const {
+int NwDisplacementMap::depth() const {
     return mDepth;
 }
 
-float NglDisplacementMap::lookup(int x, int z) const {
+float NwDisplacementMap::lookup(int x, int z) const {
     NGL_ASSERT(x >= 0);
     NGL_ASSERT(x < mWidth);
     NGL_ASSERT(z >= 0);

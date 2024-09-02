@@ -211,6 +211,11 @@
     <ClCompile Include="nvkmain.cpp" />
     <ClCompile Include="nvkutil.cpp" />
     <ClCompile Include="nwar.cpp" />
+    <ClCompile Include="NwBicubicInterpolation.cpp" />
+    <ClCompile Include="NwDisplacementMap.cpp" />
+    <ClCompile Include="NwTerrainGeometry.cpp" />
+    <ClCompile Include="nwtime.cpp" />
+    <ClCompile Include="stbimage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -250,7 +255,13 @@
     <ClInclude Include="nvkmain.h" />
     <ClInclude Include="nvkutil.h" />
     <ClInclude Include="nvkvk.h" />
+    <ClInclude Include="NwBicubicInterpolation.h" />
+    <ClInclude Include="NwDisplacementMap.h" />
+    <ClInclude Include="nwglfw.h" />
     <ClInclude Include="nwglm.h" />
+    <ClInclude Include="NwTerrainGeometry.h" />
+    <ClInclude Include="nwtime.h" />
+    <ClInclude Include="NwVertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="soloud\soloud.vcxproj">

@@ -27,6 +27,7 @@
 #include "nvkdbg.h"
 #include "nvkerr.h"
 #include "nvkutil.h"
+#include "NwTerrainGeometry.h"
 
 constexpr uint32_t kWidth = 1920;
 constexpr uint32_t kHeight = 1080;
@@ -35,40 +36,34 @@ constexpr int kMaxFramesInFlight = 2;
 const char* const kModelPath = "models/viking_room.obj";
 const char* const kTexturePath = "terrain-texture.png";
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec2 uv;
+static VkVertexInputBindingDescription getBindingDescription() {
+    VkVertexInputBindingDescription bindingDescription{};
+    bindingDescription.binding = 0;
+    bindingDescription.stride = sizeof(NwVertex);
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    return bindingDescription;
+}
 
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        return bindingDescription;
-    }
+static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+    std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+    attributeDescriptions[0].binding = 0;
+    attributeDescriptions[0].location = 0;
+    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[0].offset = offsetof(NwVertex, position);
 
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+    attributeDescriptions[1].binding = 0;
+    attributeDescriptions[1].location = 1;
+    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[1].offset = offsetof(NwVertex, normal);
 
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, normal);
+    attributeDescriptions[2].binding = 0;
+    attributeDescriptions[2].location = 2;
+    attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[2].offset = offsetof(NwVertex, uv);
 
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, uv);
-
-        return attributeDescriptions;
-    }
-};
+    return attributeDescriptions;
+}
 
 struct UniformBufferObject {
     glm::mat4 model_view;
@@ -684,8 +679,8 @@ private:
         viewportStateCreateInfo.viewportCount = 1;
         viewportStateCreateInfo.scissorCount = 1;
 
-        auto bindingDescription = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        auto bindingDescription = getBindingDescription();
+        auto attributeDescriptions = getAttributeDescriptions();
 
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
         vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1131,6 +1126,7 @@ private:
             }
         }
         */
+        /*
         mVertices.push_back(Vertex{{-0.3, 0.35, 0}, {0, 0, 0}, {0, 0}});
         mVertices.push_back(Vertex{{0.3, 0.95, 0}, {0, 0, 0}, {1, 1}});
         mVertices.push_back(Vertex{{-0.3, 0.95, 0}, {0, 0, 0}, {0, 1}});
@@ -1143,10 +1139,14 @@ private:
         mIndices.push_back(3);
         mIndices.push_back(4);
         mIndices.push_back(5);
+        */
+        NwTerrainGeometry terrainGeometry;
+        mVertices = terrainGeometry.vertices();
+        mIndices = terrainGeometry.indices();
     }
 
     void createVertexBuffer() {
-        VkDeviceSize bufferSize = sizeof(Vertex) * mVertices.size();
+        VkDeviceSize bufferSize = sizeof(NwVertex) * mVertices.size();
 
         NGL_LOGI("Creating staging buffer for vertex buffer...");
         VkBuffer stagingBuffer;
@@ -1581,7 +1581,7 @@ private:
     VkDeviceMemory mTextureImageMemory;
     VkImageView mTextureImageView;
     VkSampler mTextureSampler;
-    std::vector<Vertex> mVertices;
+    std::vector<NwVertex> mVertices;
     std::vector<uint32_t> mIndices;
     VkBuffer mVertexBuffer;
     VkDeviceMemory mVertexBufferMemory;

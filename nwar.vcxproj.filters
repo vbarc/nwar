@@ -81,6 +81,21 @@
     <ClCompile Include="NvkCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NwTerrainGeometry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NwBicubicInterpolation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NwDisplacementMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stbimage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nwtime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -187,6 +202,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="nwglm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NwVertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NwTerrainGeometry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nwtime.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nwglfw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NwBicubicInterpolation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NwDisplacementMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
