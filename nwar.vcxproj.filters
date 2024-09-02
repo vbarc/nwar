@@ -186,5 +186,8 @@
     <ClInclude Include="nvkvk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nwglm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

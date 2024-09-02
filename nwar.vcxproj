@@ -250,6 +250,7 @@
     <ClInclude Include="nvkmain.h" />
     <ClInclude Include="nvkutil.h" />
     <ClInclude Include="nvkvk.h" />
+    <ClInclude Include="nwglm.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="soloud\soloud.vcxproj">
