@@ -218,7 +218,7 @@
     <None Include="compile_shaders.bat" />
     <None Include="shader-fragment-main.glsl" />
     <None Include="shader-fragment-wireframe.glsl" />
-    <None Include="vertex.glsl" />
+    <None Include="shader-vertex.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nfile.h" />

@@ -664,7 +664,7 @@ private:
     }
 
     void createGraphicsPipeline(const std::string& fragmentShaderPath, VkPolygonMode polygonMode, VkPipeline* pipelineOut) {
-        auto vertShaderCode = nReadFile("out/vertex.spv");
+        auto vertShaderCode = nReadFile("out/shader-vertex.spv");
         auto fragShaderCode = nReadFile(fragmentShaderPath);
         NGL_LOGI("vertShaderCode.size: %zu", vertShaderCode.size());
         NGL_LOGI("fragShaderCode.size: %zu", fragShaderCode.size());
