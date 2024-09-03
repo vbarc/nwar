@@ -115,7 +115,21 @@ int nglMain() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     nglPrepareDebugIfNecessary();
 
-    GLFWwindow* window = glfwCreateWindow(1920, 1080, "N War (OpenGL)", nullptr, nullptr);
+    GLFWwindow* window;
+    if (true) {
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+        window = glfwCreateWindow(mode->width, mode->height, "N War (OpenGL)", monitor, nullptr);
+    } else {
+        window = glfwCreateWindow(1920, 1080, "N War (OpenGL)", nullptr, nullptr);
+    }
+
     if (!window) {
         NGL_LOGE("glfwCreateWindow() failed");
         glfwTerminate();
