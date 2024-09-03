@@ -40,6 +40,8 @@ static void doMain(GLFWwindow* window) {
     NGL_CHECK_ERRORS;
     glCullFace(GL_BACK);
     NGL_CHECK_ERRORS;
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    NGL_CHECK_ERRORS;
 
     NglProgram program = NglProgram::Builder()
                                  .setVertexShader(gVertexShaderSrc)
